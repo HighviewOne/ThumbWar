@@ -12,12 +12,12 @@ import com.thumbwar.ui.screens.settings.SettingsScreen
 
 object Routes {
     const val MAIN_MENU = "main_menu"
-    const val GAME = "game/{mode}/{difficulty}"
+    const val GAME = "game/{mode}/{difficulty}/{winsNeeded}"
     const val SETTINGS = "settings"
-    const val GAME_OVER = "game_over/{winner}/{p1Score}/{p2Score}"
+    const val GAME_OVER = "game_over/{winner}/{p1Score}/{p2Score}/{winsNeeded}"
 
-    fun game(mode: String, difficulty: String = "medium") = "game/$mode/$difficulty"
-    fun gameOver(winner: Int, p1Score: Int, p2Score: Int) = "game_over/$winner/$p1Score/$p2Score"
+    fun game(mode: String, difficulty: String = "medium", winsNeeded: Int = 1) = "game/$mode/$difficulty/$winsNeeded"
+    fun gameOver(winner: Int, p1Score: Int, p2Score: Int, winsNeeded: Int = 1) = "game_over/$winner/$p1Score/$p2Score/$winsNeeded"
 }
 
 @Composable
@@ -25,11 +25,11 @@ fun NavGraph(navController: NavHostController) {
     NavHost(navController = navController, startDestination = Routes.MAIN_MENU) {
         composable(Routes.MAIN_MENU) {
             MainMenuScreen(
-                onStartSinglePlayer = { difficulty ->
-                    navController.navigate(Routes.game("single", difficulty.name.lowercase()))
+                onStartSinglePlayer = { difficulty, winsNeeded ->
+                    navController.navigate(Routes.game("single", difficulty.name.lowercase(), winsNeeded))
                 },
-                onStartTwoPlayer = {
-                    navController.navigate(Routes.game("two_player"))
+                onStartTwoPlayer = { winsNeeded ->
+                    navController.navigate(Routes.game("two_player", winsNeeded = winsNeeded))
                 },
                 onSettings = {
                     navController.navigate(Routes.SETTINGS)
@@ -40,6 +40,7 @@ fun NavGraph(navController: NavHostController) {
         composable(Routes.GAME) { backStackEntry ->
             val mode = backStackEntry.arguments?.getString("mode") ?: "single"
             val difficultyStr = backStackEntry.arguments?.getString("difficulty") ?: "medium"
+            val winsNeeded = backStackEntry.arguments?.getString("winsNeeded")?.toIntOrNull() ?: 1
             val difficulty = AiDifficulty.entries.find {
                 it.name.equals(difficultyStr, ignoreCase = true)
             } ?: AiDifficulty.MEDIUM
@@ -47,8 +48,9 @@ fun NavGraph(navController: NavHostController) {
             GameScreen(
                 isTwoPlayer = mode == "two_player",
                 aiDifficulty = difficulty,
+                winsNeeded = winsNeeded,
                 onGameOver = { winner, p1Score, p2Score ->
-                    navController.navigate(Routes.gameOver(winner, p1Score, p2Score)) {
+                    navController.navigate(Routes.gameOver(winner, p1Score, p2Score, winsNeeded)) {
                         popUpTo(Routes.MAIN_MENU)
                     }
                 },
@@ -64,11 +66,13 @@ fun NavGraph(navController: NavHostController) {
             val winner = backStackEntry.arguments?.getString("winner")?.toIntOrNull() ?: 1
             val p1Score = backStackEntry.arguments?.getString("p1Score")?.toIntOrNull() ?: 0
             val p2Score = backStackEntry.arguments?.getString("p2Score")?.toIntOrNull() ?: 0
+            val winsNeeded = backStackEntry.arguments?.getString("winsNeeded")?.toIntOrNull() ?: 1
 
             GameOverScreen(
                 winner = winner,
                 p1Score = p1Score,
                 p2Score = p2Score,
+                winsNeeded = winsNeeded,
                 onRematch = {
                     navController.popBackStack()
                 },

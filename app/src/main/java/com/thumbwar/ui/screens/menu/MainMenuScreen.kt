@@ -16,11 +16,14 @@ import com.thumbwar.ui.theme.VictoryGold
 
 @Composable
 fun MainMenuScreen(
-    onStartSinglePlayer: (AiDifficulty) -> Unit,
-    onStartTwoPlayer: () -> Unit,
+    onStartSinglePlayer: (AiDifficulty, Int) -> Unit,
+    onStartTwoPlayer: (Int) -> Unit,
     onSettings: () -> Unit
 ) {
     var showDifficultyDialog by remember { mutableStateOf(false) }
+    var showRoundChoiceDialog by remember { mutableStateOf(false) }
+    var pendingDifficulty by remember { mutableStateOf<AiDifficulty?>(null) }
+    var pendingTwoPlayer by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val statsRepo = remember { StatsRepository(context) }
     val currentStreak by statsRepo.currentStreak.collectAsState(initial = 0)
@@ -72,7 +75,11 @@ fun MainMenuScreen(
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(
-            onClick = onStartTwoPlayer,
+            onClick = {
+                pendingTwoPlayer = true
+                pendingDifficulty = null
+                showRoundChoiceDialog = true
+            },
             modifier = Modifier
                 .fillMaxWidth(0.7f)
                 .height(56.dp),
@@ -103,7 +110,9 @@ fun MainMenuScreen(
                         TextButton(
                             onClick = {
                                 showDifficultyDialog = false
-                                onStartSinglePlayer(difficulty)
+                                pendingDifficulty = difficulty
+                                pendingTwoPlayer = false
+                                showRoundChoiceDialog = true
                             },
                             modifier = Modifier.fillMaxWidth()
                         ) {
@@ -118,6 +127,49 @@ fun MainMenuScreen(
             confirmButton = {},
             dismissButton = {
                 TextButton(onClick = { showDifficultyDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showRoundChoiceDialog) {
+        AlertDialog(
+            onDismissRequest = { showRoundChoiceDialog = false },
+            title = { Text("Match Length") },
+            text = {
+                Column {
+                    TextButton(
+                        onClick = {
+                            showRoundChoiceDialog = false
+                            if (pendingTwoPlayer) {
+                                onStartTwoPlayer(1)
+                            } else {
+                                pendingDifficulty?.let { onStartSinglePlayer(it, 1) }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("SINGLE ROUND", style = MaterialTheme.typography.titleLarge)
+                    }
+                    TextButton(
+                        onClick = {
+                            showRoundChoiceDialog = false
+                            if (pendingTwoPlayer) {
+                                onStartTwoPlayer(2)
+                            } else {
+                                pendingDifficulty?.let { onStartSinglePlayer(it, 2) }
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("BEST OF 3", style = MaterialTheme.typography.titleLarge)
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(onClick = { showRoundChoiceDialog = false }) {
                     Text("Cancel")
                 }
             }

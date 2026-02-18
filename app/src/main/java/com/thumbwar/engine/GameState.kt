@@ -32,5 +32,10 @@ data class GameState(
     val p1Score: Int = 0,
     val p2Score: Int = 0,
     val winner: Int = 0,           // 0 = no winner yet
-    val elapsedTimeMs: Long = 0
+    val elapsedTimeMs: Long = 0,
+    val roundNumber: Int = 1,
+    val p1RoundWins: Int = 0,
+    val p2RoundWins: Int = 0,
+    val winsNeeded: Int = 1,
+    val isMatchOver: Boolean = false
 )

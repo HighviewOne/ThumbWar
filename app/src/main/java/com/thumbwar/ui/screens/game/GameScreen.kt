@@ -3,6 +3,7 @@ package com.thumbwar.ui.screens.game
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -25,6 +26,7 @@ import androidx.compose.ui.platform.LocalLifecycleOwner
 fun GameScreen(
     isTwoPlayer: Boolean,
     aiDifficulty: AiDifficulty,
+    winsNeeded: Int = 1,
     onGameOver: (winner: Int, p1Score: Int, p2Score: Int) -> Unit,
     onBack: () -> Unit,
     viewModel: GameViewModel = viewModel()
@@ -61,14 +63,19 @@ fun GameScreen(
     }
 
     LaunchedEffect(Unit) {
-        viewModel.initialize(isTwoPlayer, aiDifficulty)
+        viewModel.initialize(isTwoPlayer, aiDifficulty, winsNeeded)
     }
 
-    // Navigate to game over when game ends
-    LaunchedEffect(gameState.phase) {
+    // Handle round end vs match end
+    LaunchedEffect(gameState.phase, gameState.roundNumber) {
         if (gameState.phase == GamePhase.GAME_OVER) {
-            kotlinx.coroutines.delay(1500)
-            onGameOver(gameState.winner, gameState.p1Score, gameState.p2Score)
+            if (gameState.isMatchOver) {
+                kotlinx.coroutines.delay(1500)
+                onGameOver(gameState.winner, gameState.p1RoundWins, gameState.p2RoundWins)
+            } else {
+                kotlinx.coroutines.delay(com.thumbwar.engine.GameConfig.ROUND_TRANSITION_DELAY_MS)
+                viewModel.startNextRound()
+            }
         }
     }
 
@@ -120,8 +127,10 @@ fun GameScreen(
 
         // Score display
         ScoreDisplay(
-            p1Score = gameState.p1Score,
-            p2Score = gameState.p2Score
+            p1Score = gameState.p1RoundWins,
+            p2Score = gameState.p2RoundWins,
+            roundNumber = gameState.roundNumber,
+            winsNeeded = gameState.winsNeeded
         )
 
         // Countdown overlay
@@ -138,6 +147,20 @@ fun GameScreen(
                 progress = gameState.pinProgress,
                 pinnerPlayer = gameState.pinnerPlayer
             )
+        }
+
+        // Round transition overlay
+        if (gameState.phase == GamePhase.GAME_OVER && !gameState.isMatchOver && gameState.winsNeeded > 1) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Player ${gameState.winner} wins the round!",
+                    style = MaterialTheme.typography.headlineLarge,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+            }
         }
     }
 }

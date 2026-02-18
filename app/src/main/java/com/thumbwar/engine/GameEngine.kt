@@ -2,7 +2,7 @@ package com.thumbwar.engine
 
 import com.thumbwar.util.Vector2
 
-class GameEngine {
+class GameEngine(private val winsNeeded: Int = 1) {
     val thumb1 = ThumbEntity(GameConfig.PLAYER1_START_X, GameConfig.PLAYER1_START_Y)
     val thumb2 = ThumbEntity(GameConfig.PLAYER2_START_X, GameConfig.PLAYER2_START_Y)
 
@@ -15,6 +15,10 @@ class GameEngine {
     private var p2Score: Int = 0
     private var winner: Int = 0
     private var elapsedTimeMs: Long = 0
+    private var roundNumber: Int = 1
+    private var p1RoundWins: Int = 0
+    private var p2RoundWins: Int = 0
+    private var isMatchOver: Boolean = false
 
     fun startGame() {
         phaseManager.startCountdown()
@@ -91,8 +95,9 @@ class GameEngine {
         if (pinProgress >= 1f) {
             pinProgress = 1f
             // Pin complete — pinner wins the round
-            if (pinnerPlayer == 1) p1Score++ else p2Score++
+            if (pinnerPlayer == 1) { p1Score++; p1RoundWins++ } else { p2Score++; p2RoundWins++ }
             winner = pinnerPlayer
+            isMatchOver = (if (pinnerPlayer == 1) p1RoundWins else p2RoundWins) >= winsNeeded
             phaseManager.gameOver()
         }
     }
@@ -114,6 +119,21 @@ class GameEngine {
         pinnerPlayer = 0
         winner = 0
         elapsedTimeMs = 0
+        roundNumber = 1
+        p1RoundWins = 0
+        p2RoundWins = 0
+        isMatchOver = false
+        phaseManager.reset()
+    }
+
+    fun nextRound() {
+        thumb1.reset(GameConfig.PLAYER1_START_X, GameConfig.PLAYER1_START_Y)
+        thumb2.reset(GameConfig.PLAYER2_START_X, GameConfig.PLAYER2_START_Y)
+        pinProgress = 0f
+        pinnerPlayer = 0
+        winner = 0
+        elapsedTimeMs = 0
+        roundNumber++
         phaseManager.reset()
     }
 
@@ -128,6 +148,11 @@ class GameEngine {
         p1Score = p1Score,
         p2Score = p2Score,
         winner = winner,
-        elapsedTimeMs = elapsedTimeMs
+        elapsedTimeMs = elapsedTimeMs,
+        roundNumber = roundNumber,
+        p1RoundWins = p1RoundWins,
+        p2RoundWins = p2RoundWins,
+        winsNeeded = winsNeeded,
+        isMatchOver = isMatchOver
     )
 }

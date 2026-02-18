@@ -19,6 +19,7 @@ fun GameOverScreen(
     winner: Int,
     p1Score: Int,
     p2Score: Int,
+    winsNeeded: Int = 1,
     onRematch: () -> Unit,
     onMainMenu: () -> Unit
 ) {
@@ -53,7 +54,7 @@ fun GameOverScreen(
     ) {
         // Trophy/crown emoji placeholder
         Text(
-            text = "WINNER!",
+            text = if (winsNeeded > 1) "WINS THE MATCH!" else "WINNER!",
             fontSize = 20.sp,
             color = VictoryGold,
             style = MaterialTheme.typography.labelLarge,

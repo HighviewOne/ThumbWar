@@ -23,10 +23,11 @@ import kotlinx.coroutines.launch
 
 class GameViewModel(application: Application) : AndroidViewModel(application) {
 
-    private val engine = GameEngine()
+    private var engine = GameEngine()
     private var inputManager: InputManager? = null
     private var aiController: AiController? = null
     private var gameLoopJob: Job? = null
+    private var roundTransitionJob: Job? = null
     private val soundManager = SoundManager(application)
 
     private val _gameState = MutableStateFlow(engine.getState())
@@ -35,9 +36,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private var isTwoPlayer = false
     private var lastPhase = GamePhase.READY
     private var lastCountdownBeat = 0
+    private var winsNeeded = 1
 
-    fun initialize(isTwoPlayer: Boolean, aiDifficulty: AiDifficulty) {
+    fun initialize(isTwoPlayer: Boolean, aiDifficulty: AiDifficulty, winsNeeded: Int = 1) {
         this.isTwoPlayer = isTwoPlayer
+        this.winsNeeded = winsNeeded
+        engine = GameEngine(winsNeeded)
         inputManager = InputManager(isTwoPlayer)
 
         if (!isTwoPlayer) {
@@ -147,7 +151,17 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         inputManager?.processPointerUp(pointerId)?.let { onInputEvent(it) }
     }
 
+    fun startNextRound() {
+        engine.nextRound()
+        engine.startGame()
+        lastPhase = GamePhase.READY
+        lastCountdownBeat = 0
+        _gameState.value = engine.getState()
+        startGameLoop()
+    }
+
     fun rematch() {
+        engine = GameEngine(winsNeeded)
         startGame()
     }
 
@@ -164,6 +178,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     override fun onCleared() {
         super.onCleared()
         gameLoopJob?.cancel()
+        roundTransitionJob?.cancel()
         soundManager.release()
     }
 }

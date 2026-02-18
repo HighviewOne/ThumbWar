@@ -31,4 +31,7 @@ object GameConfig {
 
     // Scores
     const val WINS_NEEDED = 1  // best of 1 by default
+
+    // Round transitions
+    const val ROUND_TRANSITION_DELAY_MS = 2000L
 }

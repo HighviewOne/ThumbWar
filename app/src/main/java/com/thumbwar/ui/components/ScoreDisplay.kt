@@ -14,7 +14,9 @@ import com.thumbwar.ui.theme.Player2Skin
 @Composable
 fun ScoreDisplay(
     p1Score: Int,
-    p2Score: Int
+    p2Score: Int,
+    roundNumber: Int = 1,
+    winsNeeded: Int = 1
 ) {
     Box(
         modifier = Modifier
@@ -37,6 +39,17 @@ fun ScoreDisplay(
                     style = MaterialTheme.typography.headlineMedium,
                     color = Color.White
                 )
+            }
+
+            // Round indicator (only for best-of-3)
+            if (winsNeeded > 1) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Round $roundNumber",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color.White.copy(alpha = 0.7f)
+                    )
+                }
             }
 
             // Player 2 score
