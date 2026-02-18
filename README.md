@@ -11,6 +11,7 @@ Requires Android 8.0 or higher. Enable "Install from unknown sources" in device 
 - **VS Computer** — 3 AI difficulties (Easy, Medium, Hard)
 - **2 Players** — same device, landscape mode, one thumb each
 - **Countdown** — "1, 2, 3, 4, I declare a thumb war!"
+- **Best of 3** — choose single round or best-of-3 match before each game
 - **Pin mechanics** — overlap your opponent and hold for 2.5 seconds to win
 - **Sound & haptics** — audio feedback and vibration on game events
 - **Stats tracking** — wins, losses, and win streaks persisted across sessions
