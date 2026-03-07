@@ -1,6 +1,3 @@
-# Android default ProGuard rules
--include ${android.sdk.home}/tools/proguard/proguard-android-optimize.txt
-
 # Application-specific ProGuard rules
 
 # Jetpack/AndroidX rules
@@ -58,11 +55,5 @@
     public static *** i(...);
 }
 
-# Optimize aggressively
--optimizationpasses 5
 -allowaccessmodification
-
-# Enable obfuscation
--obfuscate
--useuniqueclassmembernames
 
