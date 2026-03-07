@@ -2,6 +2,22 @@ package com.thumbwar.engine
 
 import com.thumbwar.util.Vector2
 
+/**
+ * Core game engine managing the main game loop and state.
+ *
+ * The GameEngine is responsible for:
+ * - Running the game loop at ~60 FPS
+ * - Updating thumb positions based on input and AI
+ * - Detecting collisions and pin conditions
+ * - Managing game phase transitions
+ * - Tracking scores and match progress
+ *
+ * @param winsNeeded Number of wins required to win the match (default 1 for single round, 2 for best-of-3)
+ *
+ * @see ThumbEntity
+ * @see PhaseManager
+ * @see CollisionDetector
+ */
 class GameEngine(private val winsNeeded: Int = 1) {
     val thumb1 = ThumbEntity(GameConfig.PLAYER1_START_X, GameConfig.PLAYER1_START_Y)
     val thumb2 = ThumbEntity(GameConfig.PLAYER2_START_X, GameConfig.PLAYER2_START_Y)
@@ -20,10 +36,18 @@ class GameEngine(private val winsNeeded: Int = 1) {
     private var p2RoundWins: Int = 0
     private var isMatchOver: Boolean = false
 
+    /**
+     * Starts the game sequence beginning with countdown phase.
+     */
     fun startGame() {
         phaseManager.startCountdown()
     }
 
+    /**
+     * Sets the target position for player 1's thumb.
+     *
+     * @param target The desired position vector from touch input
+     */
     fun setPlayer1Target(target: Vector2) {
         if (phaseManager.phase == GamePhase.PLAYING || phaseManager.phase == GamePhase.PIN_IN_PROGRESS) {
             thumb1.setTarget(target)

@@ -1,0 +1,10 @@
+# Local properties - DO NOT commit this file
+# Copy to local.properties and fill in your values
+
+# Keystore credentials for release signing
+KEYSTORE_PASSWORD=your_keystore_password_here
+KEY_ALIAS=your_key_alias_here
+KEY_PASSWORD=your_key_password_here
+
+# Android SDK path (if needed)
+# sdk.dir=/path/to/android/sdk

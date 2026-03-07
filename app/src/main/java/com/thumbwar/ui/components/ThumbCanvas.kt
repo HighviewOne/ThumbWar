@@ -1,11 +1,14 @@
 package com.thumbwar.ui.components
 
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import com.thumbwar.engine.GameConfig
 import com.thumbwar.engine.ThumbState
 import com.thumbwar.ui.theme.*
 
@@ -40,90 +43,142 @@ object ThumbCanvas {
     ) {
         val cx = state.position.x * canvasSize.width
         val cy = state.position.y * canvasSize.height
-        val baseRadius = com.thumbwar.engine.GameConfig.THUMB_RADIUS * canvasSize.width.coerceAtMost(canvasSize.height)
+        val baseRadius = GameConfig.THUMB_RADIUS * canvasSize.width.coerceAtMost(canvasSize.height)
 
-        val scaleX = if (isSquished) 1.3f else 1f
-        val scaleY = if (isSquished) 0.7f else 1f
-        val radiusX = baseRadius * scaleX
-        val radiusY = baseRadius * scaleY
+        val scaleX = if (isSquished) 1.35f else 1f
+        val scaleY = if (isSquished) 0.65f else 1f
+        val bodyWidth = baseRadius * 2.0f * scaleX
+        val bodyHeight = baseRadius * 2.8f * scaleY
 
-        // Body (elongated oval for thumb shape)
-        val bodyHeight = radiusY * 2.8f
-        val bodyWidth = radiusX * 2f
+        val left = cx - bodyWidth / 2
+        val top = cy - bodyHeight / 2
+        val cornerRadius = CornerRadius(bodyWidth * 0.48f)
 
-        // Thumb body — rounded rectangle
-        drawOval(
-            color = colors.skin,
-            topLeft = Offset(cx - bodyWidth / 2, cy - bodyHeight / 2),
-            size = Size(bodyWidth, bodyHeight)
-        )
-
-        // Outline
-        drawOval(
-            color = colors.outline,
-            topLeft = Offset(cx - bodyWidth / 2, cy - bodyHeight / 2),
+        // 1. Drop shadow
+        drawRoundRect(
+            color = Color.Black.copy(alpha = 0.20f),
+            topLeft = Offset(left + 5f, top + 7f),
             size = Size(bodyWidth, bodyHeight),
-            style = Stroke(width = 3f)
+            cornerRadius = cornerRadius
         )
 
-        // Nail (top portion)
-        val nailWidth = bodyWidth * 0.6f
-        val nailHeight = bodyHeight * 0.25f
-        drawOval(
+        // 2. Body base fill
+        drawRoundRect(
+            color = colors.skin,
+            topLeft = Offset(left, top),
+            size = Size(bodyWidth, bodyHeight),
+            cornerRadius = cornerRadius
+        )
+
+        // 3. Gradient shading — highlight top-left, shadow bottom-right
+        drawRoundRect(
+            brush = Brush.linearGradient(
+                colors = listOf(
+                    Color.White.copy(alpha = 0.30f),
+                    Color.Transparent,
+                    colors.skinDark.copy(alpha = 0.28f)
+                ),
+                start = Offset(left, top),
+                end = Offset(left + bodyWidth, top + bodyHeight)
+            ),
+            topLeft = Offset(left, top),
+            size = Size(bodyWidth, bodyHeight),
+            cornerRadius = cornerRadius
+        )
+
+        // 4. Outline
+        drawRoundRect(
+            color = colors.outline,
+            topLeft = Offset(left, top),
+            size = Size(bodyWidth, bodyHeight),
+            cornerRadius = cornerRadius,
+            style = Stroke(width = 3.5f)
+        )
+
+        // 5. Fingernail
+        val nailWidth = bodyWidth * 0.62f
+        val nailHeight = bodyHeight * 0.22f
+        val nailLeft = cx - nailWidth / 2
+        val nailTop = top + bodyHeight * 0.07f
+        val nailCorner = CornerRadius(nailWidth * 0.45f)
+
+        drawRoundRect(
             color = colors.nail,
-            topLeft = Offset(cx - nailWidth / 2, cy - bodyHeight / 2 + bodyHeight * 0.08f),
-            size = Size(nailWidth, nailHeight)
+            topLeft = Offset(nailLeft, nailTop),
+            size = Size(nailWidth, nailHeight),
+            cornerRadius = nailCorner
+        )
+        // Nail gradient sheen
+        drawRoundRect(
+            brush = Brush.linearGradient(
+                colors = listOf(Color.White.copy(alpha = 0.55f), Color.Transparent),
+                start = Offset(nailLeft, nailTop),
+                end = Offset(nailLeft + nailWidth, nailTop + nailHeight)
+            ),
+            topLeft = Offset(nailLeft, nailTop),
+            size = Size(nailWidth, nailHeight),
+            cornerRadius = nailCorner
+        )
+        // Nail outline
+        drawRoundRect(
+            color = colors.outline.copy(alpha = 0.50f),
+            topLeft = Offset(nailLeft, nailTop),
+            size = Size(nailWidth, nailHeight),
+            cornerRadius = nailCorner,
+            style = Stroke(width = 1.5f)
         )
 
-        // Nail shine
-        val shineWidth = nailWidth * 0.3f
-        val shineHeight = nailHeight * 0.4f
-        drawOval(
-            color = Color.White.copy(alpha = 0.4f),
-            topLeft = Offset(cx - shineWidth / 2 - nailWidth * 0.1f, cy - bodyHeight / 2 + bodyHeight * 0.1f),
-            size = Size(shineWidth, shineHeight)
-        )
-
-        // Knuckle line
-        val knuckleY = cy + bodyHeight * 0.15f
+        // 6. Knuckle creases (two arched lines)
+        val knuckle1Y = cy + bodyHeight * 0.13f
+        val knuckle2Y = cy + bodyHeight * 0.28f
         drawLine(
-            color = colors.skinDark,
-            start = Offset(cx - bodyWidth * 0.3f, knuckleY),
-            end = Offset(cx + bodyWidth * 0.3f, knuckleY),
-            strokeWidth = 2f,
+            color = colors.skinDark.copy(alpha = 0.65f),
+            start = Offset(cx - bodyWidth * 0.28f, knuckle1Y),
+            end = Offset(cx + bodyWidth * 0.28f, knuckle1Y),
+            strokeWidth = 2.5f,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = colors.skinDark.copy(alpha = 0.42f),
+            start = Offset(cx - bodyWidth * 0.22f, knuckle2Y),
+            end = Offset(cx + bodyWidth * 0.22f, knuckle2Y),
+            strokeWidth = 1.8f,
             cap = StrokeCap.Round
         )
 
-        // Cartoon eyes
-        val eyeY = cy - bodyHeight * 0.08f
-        val eyeSpacing = bodyWidth * 0.2f
-        val eyeRadius = baseRadius * 0.18f
-        val pupilRadius = eyeRadius * 0.55f
+        // 7. Eyes
+        val eyeY = cy - bodyHeight * 0.09f
+        val eyeSpacing = bodyWidth * 0.21f
+        val eyeRadius = baseRadius * 0.17f
+        val pupilRadius = eyeRadius * 0.58f
 
-        // Left eye white
-        drawCircle(Color.White, radius = eyeRadius, center = Offset(cx - eyeSpacing, eyeY))
-        // Right eye white
-        drawCircle(Color.White, radius = eyeRadius, center = Offset(cx + eyeSpacing, eyeY))
-
-        // Pupils
-        drawCircle(Color.Black, radius = pupilRadius, center = Offset(cx - eyeSpacing + 1f, eyeY + 1f))
-        drawCircle(Color.Black, radius = pupilRadius, center = Offset(cx + eyeSpacing + 1f, eyeY + 1f))
-
-        // Eye shine
-        val shineR = pupilRadius * 0.4f
-        drawCircle(Color.White, radius = shineR, center = Offset(cx - eyeSpacing - 1f, eyeY - 1f))
-        drawCircle(Color.White, radius = shineR, center = Offset(cx + eyeSpacing - 1f, eyeY - 1f))
-
-        // Pinned indicator — X eyes
-        if (state.isPinned) {
-            val xSize = eyeRadius * 0.6f
-            val xStroke = 2f
-            // Left eye X
-            drawLine(colors.outline, Offset(cx - eyeSpacing - xSize, eyeY - xSize), Offset(cx - eyeSpacing + xSize, eyeY + xSize), xStroke)
-            drawLine(colors.outline, Offset(cx - eyeSpacing + xSize, eyeY - xSize), Offset(cx - eyeSpacing - xSize, eyeY + xSize), xStroke)
-            // Right eye X
-            drawLine(colors.outline, Offset(cx + eyeSpacing - xSize, eyeY - xSize), Offset(cx + eyeSpacing + xSize, eyeY + xSize), xStroke)
-            drawLine(colors.outline, Offset(cx + eyeSpacing + xSize, eyeY - xSize), Offset(cx + eyeSpacing - xSize, eyeY + xSize), xStroke)
+        for (sign in listOf(-1f, 1f)) {
+            val ex = cx + sign * eyeSpacing
+            // White
+            drawCircle(Color.White, radius = eyeRadius, center = Offset(ex, eyeY))
+            // Subtle outline
+            drawCircle(
+                color = colors.outline.copy(alpha = 0.30f),
+                radius = eyeRadius,
+                center = Offset(ex, eyeY),
+                style = Stroke(width = 1.5f)
+            )
+            if (!state.isPinned) {
+                // Pupils looking slightly inward
+                val pupilX = ex + sign * eyeRadius * 0.08f
+                drawCircle(Color(0xFF1A1A1A), radius = pupilRadius, center = Offset(pupilX, eyeY + 1f))
+                // Shine
+                drawCircle(
+                    Color.White,
+                    radius = pupilRadius * 0.38f,
+                    center = Offset(pupilX - pupilRadius * 0.30f, eyeY - pupilRadius * 0.30f)
+                )
+            } else {
+                // X eyes when pinned
+                val xSize = eyeRadius * 0.62f
+                drawLine(colors.outline, Offset(ex - xSize, eyeY - xSize), Offset(ex + xSize, eyeY + xSize), 2.5f, cap = StrokeCap.Round)
+                drawLine(colors.outline, Offset(ex + xSize, eyeY - xSize), Offset(ex - xSize, eyeY + xSize), 2.5f, cap = StrokeCap.Round)
+            }
         }
     }
 }

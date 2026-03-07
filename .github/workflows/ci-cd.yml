@@ -1,0 +1,116 @@
+name: ThumbWar CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Run ktlint
+      run: ./gradlew ktlintCheck
+
+    - name: Run Detekt
+      run: ./gradlew detekt
+
+    - name: Build debug APK
+      run: ./gradlew assembleDebug
+
+    - name: Run unit tests
+      run: ./gradlew testDebugUnitTest
+
+    - name: Generate code coverage report
+      run: ./gradlew jacocoTestReport
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
+        fail_ci_if_error: false
+        verbose: true
+
+    - name: Upload test results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: app/build/reports/tests/
+
+    - name: Upload debug APK
+      uses: actions/upload-artifact@v3
+      with:
+        name: debug-apk
+        path: app/build/outputs/apk/debug/
+
+    - name: Upload lint results
+      if: always()
+      uses: actions/upload-artifact@v3
+      with:
+        name: lint-results
+        path: |
+          app/build/reports/detekt/
+          app/build/reports/lint/
+
+  code-quality:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: gradle
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+
+    - name: Run Android Lint
+      run: ./gradlew lintDebug
+      continue-on-error: true
+
+    - name: Check for deprecated API usage
+      run: ./gradlew :app:dependencies
+      continue-on-error: true
+
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'config'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+      continue-on-error: true
+
+    - name: Upload Trivy results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
