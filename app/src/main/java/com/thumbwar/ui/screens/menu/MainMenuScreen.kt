@@ -10,8 +10,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.thumbwar.ai.AiDifficulty
 import com.thumbwar.data.StatsRepository
-import com.thumbwar.ui.theme.RingGold
 import com.thumbwar.ui.theme.MenuAccent
+import com.thumbwar.ui.theme.RingGold
 import com.thumbwar.ui.theme.VictoryGold
 
 @Composable

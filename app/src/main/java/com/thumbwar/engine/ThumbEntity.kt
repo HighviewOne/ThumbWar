@@ -49,8 +49,10 @@ class ThumbEntity(
 
         // Clamp to arena bounds
         position = position.clamp(
-            GameConfig.ARENA_MIN_X, GameConfig.ARENA_MIN_Y,
-            GameConfig.ARENA_MAX_X, GameConfig.ARENA_MAX_Y
+            GameConfig.ARENA_MIN_X,
+            GameConfig.ARENA_MIN_Y,
+            GameConfig.ARENA_MAX_X,
+            GameConfig.ARENA_MAX_Y
         )
     }
 

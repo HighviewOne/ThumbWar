@@ -1,11 +1,19 @@
 package com.thumbwar.ui.screens.game
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.thumbwar.ai.AiDifficulty
 import com.thumbwar.engine.GamePhase
@@ -13,14 +21,6 @@ import com.thumbwar.ui.components.ArenaCanvas
 import com.thumbwar.ui.components.CountdownOverlay
 import com.thumbwar.ui.components.PinProgressBar
 import com.thumbwar.ui.components.ScoreDisplay
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.platform.LocalContext
-import android.app.Activity
-import android.content.pm.ActivityInfo
-import androidx.activity.compose.BackHandler
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
-import androidx.compose.ui.platform.LocalLifecycleOwner
 
 @Composable
 fun GameScreen(

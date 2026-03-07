@@ -7,6 +7,11 @@ plugins {
     id("jacoco")
 }
 
+ktlint {
+    @Suppress("DEPRECATION")
+    disabledRules.addAll("standard:no-wildcard-imports", "standard:filename")
+}
+
 android {
     namespace = "com.thumbwar"
     compileSdk = 34
@@ -119,20 +124,26 @@ tasks.register<JacocoReport>("jacocoTestReport") {
     }
     sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
     classDirectories.setFrom(
-        fileTree(mapOf(
-            "dir" to "${layout.buildDirectory}/intermediates/javac/debug",
-            "excludes" to listOf(
-                "**/R.class",
-                "**/R$*.class",
-                "**/*ViewBinding*",
-                "**/*Fragment*"
+        fileTree(
+            mapOf(
+                "dir" to "${layout.buildDirectory}/intermediates/javac/debug",
+                "excludes" to listOf(
+                    "**/R.class",
+                    "**/R$*.class",
+                    "**/*ViewBinding*",
+                    "**/*Fragment*"
+                )
             )
-        ))
-    )
-    executionData.setFrom(fileTree(mapOf(
-        "dir" to layout.buildDirectory,
-        "includes" to listOf(
-            "outputs/unit_test_code_coverage/debugUnitTest/**/*.exec"
         )
-    )))
+    )
+    executionData.setFrom(
+        fileTree(
+            mapOf(
+                "dir" to layout.buildDirectory,
+                "includes" to listOf(
+                    "outputs/unit_test_code_coverage/debugUnitTest/**/*.exec"
+                )
+            )
+        )
+    )
 }

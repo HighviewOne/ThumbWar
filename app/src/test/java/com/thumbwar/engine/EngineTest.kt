@@ -3,8 +3,6 @@ package com.thumbwar.engine
 import com.thumbwar.util.Vector2
 import org.junit.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class CollisionDetectorTest {

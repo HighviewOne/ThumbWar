@@ -1,13 +1,7 @@
 package com.thumbwar.ui.screens.game
 
-import com.thumbwar.ai.AiDifficulty
-import com.thumbwar.engine.GamePhase
-import com.thumbwar.engine.GameState
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 class GameViewModelTest {
 

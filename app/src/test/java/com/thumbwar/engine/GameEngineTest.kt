@@ -1,7 +1,9 @@
 package com.thumbwar.engine
 
 import com.thumbwar.util.Vector2
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -42,7 +44,7 @@ class GameEngineTest {
 
         // Tick through the entire countdown
         val totalCountdownMs = GameConfig.COUNTDOWN_BEAT_DURATION_MS * GameConfig.COUNTDOWN_BEATS +
-                GameConfig.COUNTDOWN_DECLARE_DURATION_MS + 100
+            GameConfig.COUNTDOWN_DECLARE_DURATION_MS + 100
         val tickCount = (totalCountdownMs / GameConfig.TICK_RATE_MS).toInt() + 1
 
         repeat(tickCount) {
@@ -271,7 +273,7 @@ class GameEngineTest {
 
     private fun advanceToPlaying(eng: GameEngine = engine) {
         val totalCountdownMs = GameConfig.COUNTDOWN_BEAT_DURATION_MS * GameConfig.COUNTDOWN_BEATS +
-                GameConfig.COUNTDOWN_DECLARE_DURATION_MS + 200
+            GameConfig.COUNTDOWN_DECLARE_DURATION_MS + 200
         val tickCount = (totalCountdownMs / GameConfig.TICK_RATE_MS).toInt() + 1
         repeat(tickCount) {
             eng.tick(GameConfig.TICK_RATE_MS)

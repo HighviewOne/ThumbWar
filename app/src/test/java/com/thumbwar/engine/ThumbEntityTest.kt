@@ -1,7 +1,9 @@
 package com.thumbwar.engine
 
 import com.thumbwar.util.Vector2
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ThumbEntityTest {

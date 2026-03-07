@@ -11,7 +11,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.thumbwar.ui.theme.MenuAccent
-import com.thumbwar.ui.theme.RingGold
 import com.thumbwar.ui.theme.VictoryGold
 
 @Composable

@@ -1,11 +1,12 @@
 package com.thumbwar.ai
 
-import com.thumbwar.engine.GameConfig
 import com.thumbwar.engine.GamePhase
 import com.thumbwar.engine.GameState
 import com.thumbwar.engine.ThumbState
 import com.thumbwar.util.Vector2
-import org.junit.Assert.*
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AiControllerTest {

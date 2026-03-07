@@ -41,7 +41,7 @@ class PhaseManager {
             if (countdownElapsedMs >= GameConfig.COUNTDOWN_DECLARE_DURATION_MS) {
                 phase = GamePhase.PLAYING
                 countdownText = ""
-                return true  // countdown finished
+                return true // countdown finished
             }
         }
         return false

@@ -25,7 +25,9 @@ fun CountdownOverlay(
     val animKey = if (beat != lastBeat) {
         lastBeat = beat
         beat
-    } else beat
+    } else {
+        beat
+    }
 
     val scale = remember(animKey) { Animatable(2f) }
     val alphaAnim = remember(animKey) { Animatable(0f) }

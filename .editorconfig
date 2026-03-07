@@ -1,0 +1,15 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# Wildcard imports are acceptable for Compose/theme packages
+ktlint_standard_no-wildcard-imports = disabled
+# File naming may not match single-class constraint for sealed/companion files
+ktlint_standard_filename = disabled

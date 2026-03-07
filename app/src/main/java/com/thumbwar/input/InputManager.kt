@@ -17,7 +17,7 @@ class InputManager(
             // Left half = P1, right half = P2
             if (normalizedX < 0.5f) 1 else 2
         } else {
-            1  // Single player: all touch is P1
+            1 // Single player: all touch is P1
         }
 
         pointerToPlayer[pointerId] = player

@@ -4,7 +4,7 @@ class CollisionDetector {
 
     data class PinResult(
         val isPinning: Boolean,
-        val pinnerPlayer: Int  // 1 or 2, 0 if no pin
+        val pinnerPlayer: Int // 1 or 2, 0 if no pin
     )
 
     fun checkPin(thumb1: ThumbEntity, thumb2: ThumbEntity): PinResult {
@@ -29,7 +29,7 @@ class CollisionDetector {
             // Tiebreaker: higher velocity magnitude
             thumb1.velocity.length() > thumb2.velocity.length() -> 1
             thumb2.velocity.length() > thumb1.velocity.length() -> 2
-            else -> 0  // truly equal — no pin
+            else -> 0 // truly equal — no pin
         }
 
         return PinResult(isPinning = pinner != 0, pinnerPlayer = pinner)

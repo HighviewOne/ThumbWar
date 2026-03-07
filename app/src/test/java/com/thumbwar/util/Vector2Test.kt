@@ -1,6 +1,6 @@
 package com.thumbwar.util
 
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class Vector2Test {

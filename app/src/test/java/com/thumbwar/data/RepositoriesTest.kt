@@ -2,8 +2,6 @@ package com.thumbwar.data
 
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 class StatsRepositoryTest {
 
