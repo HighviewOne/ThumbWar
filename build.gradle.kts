@@ -7,5 +7,5 @@ plugins {
 detekt {
     autoCorrect = true
     buildUponDefaultConfig = true
-    config = files("$rootDir/detekt.yml")
+    config.setFrom(files("$rootDir/detekt.yml"))
 }
