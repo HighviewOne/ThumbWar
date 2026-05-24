@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/HighviewOne/ThumbWar#documentation
+    about: Architecture, game mechanics, contributing guide
+  - name: Download the game
+    url: https://highviewone.github.io/ThumbWar/
+    about: Get the latest APK
