@@ -29,7 +29,7 @@ fun GameScreen(
     winsNeeded: Int = 1,
     onGameOver: (winner: Int, p1Score: Int, p2Score: Int) -> Unit,
     onBack: () -> Unit,
-    viewModel: GameViewModel = viewModel()
+    viewModel: GameViewModel = viewModel(factory = GameViewModel.Factory)
 ) {
     val gameState by viewModel.gameState.collectAsState()
 

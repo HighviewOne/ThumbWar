@@ -1,8 +1,10 @@
 package com.thumbwar.ui.screens.game
 
-import android.app.Application
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.thumbwar.ai.AiController
 import com.thumbwar.ai.AiDifficulty
 import com.thumbwar.audio.GameSound
@@ -17,21 +19,27 @@ import com.thumbwar.input.InputEvent
 import com.thumbwar.input.InputManager
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
-class GameViewModel(application: Application) : AndroidViewModel(application) {
+class GameViewModel(
+    private val soundManager: SoundManager,
+    soundEnabled: Flow<Boolean>,
+    vibrationEnabled: Flow<Boolean>,
+    private val statsRepository: StatsRepository,
+    private val clock: () -> Long = System::currentTimeMillis,
+    private val aiRandom: Random = Random.Default
+) : ViewModel() {
 
     private var engine = GameEngine()
     private var inputManager: InputManager? = null
     private var aiController: AiController? = null
     private var gameLoopJob: Job? = null
-    private var roundTransitionJob: Job? = null
-    private val soundManager = SoundManager(application)
-    private val statsRepository = StatsRepository(application)
 
     private val _gameState = MutableStateFlow(engine.getState())
     val gameState: StateFlow<GameState> = _gameState.asStateFlow()
@@ -44,9 +52,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private var arenaHeight = 0f
 
     init {
-        val prefs = PreferencesRepository(application)
-        viewModelScope.launch { prefs.soundEnabled.collect { soundManager.setSoundEnabled(it) } }
-        viewModelScope.launch { prefs.vibrationEnabled.collect { soundManager.setVibrationEnabled(it) } }
+        viewModelScope.launch { soundEnabled.collect { soundManager.setSoundEnabled(it) } }
+        viewModelScope.launch { vibrationEnabled.collect { soundManager.setVibrationEnabled(it) } }
     }
 
     fun initialize(isTwoPlayer: Boolean, aiDifficulty: AiDifficulty, winsNeeded: Int = 1) {
@@ -56,7 +63,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         inputManager = InputManager(isTwoPlayer)
 
         if (!isTwoPlayer) {
-            aiController = AiController(aiDifficulty)
+            aiController = AiController(aiDifficulty, aiRandom)
         }
 
         startGame()
@@ -82,9 +89,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private fun startGameLoop() {
         gameLoopJob?.cancel()
         gameLoopJob = viewModelScope.launch {
-            var lastTime = System.currentTimeMillis()
+            var lastTime = clock()
             while (isActive) {
-                val now = System.currentTimeMillis()
+                val now = clock()
                 val delta = (now - lastTime).coerceIn(1, 50)
                 lastTime = now
 
@@ -195,10 +202,24 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    companion object {
+        val Factory = viewModelFactory {
+            initializer {
+                val app = checkNotNull(this[APPLICATION_KEY])
+                val prefs = PreferencesRepository(app)
+                GameViewModel(
+                    soundManager = SoundManager(app),
+                    soundEnabled = prefs.soundEnabled,
+                    vibrationEnabled = prefs.vibrationEnabled,
+                    statsRepository = StatsRepository(app)
+                )
+            }
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         gameLoopJob?.cancel()
-        roundTransitionJob?.cancel()
         soundManager.release()
     }
 }

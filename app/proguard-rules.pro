@@ -1,59 +1,9 @@
-# Application-specific ProGuard rules
+# Application-specific R8 rules.
+#
+# Nothing extra is needed to keep the app working: it uses no reflection or serialization,
+# and AndroidX (Compose, Navigation, Lifecycle, DataStore) ships its own consumer rules.
+# Blanket -keep rules here would stop R8 from shrinking the app, so don't add them back.
 
-# Jetpack/AndroidX rules
--keepclasseswithmembernames class * {
-    native <methods>;
-}
-
-# Keep Jetpack Compose classes
--keep class androidx.compose.** { *; }
--keepclassmembers class androidx.compose.** { *; }
-
-# Keep DataStore classes
--keep class androidx.datastore.** { *; }
-
-# Keep navigation components
--keep class androidx.navigation.** { *; }
-
-# Keep all Android lifecycle components
--keep class androidx.lifecycle.** { *; }
-
-# Application classes
--keep class com.thumbwar.** { *; }
--keepclasseswithmembers class com.thumbwar.** {
-    public static void main(java.lang.String[]);
-}
-
-# Keep ThumbWar MainActivity
--keep class com.thumbwar.MainActivity { *; }
--keep class com.thumbwar.ThumbWarApplication { *; }
-
-# Keep game engine and core logic
--keep class com.thumbwar.engine.** { *; }
--keep class com.thumbwar.ai.** { *; }
--keep class com.thumbwar.data.** { *; }
-
-# Keep enum classes used by game logic
--keepclasseswithmembers enum * {
-    public static **[] values();
-    public static ** valueOf(java.lang.String);
-}
-
-# Keep data classes
--keep class com.thumbwar.engine.GameState { *; }
--keep class com.thumbwar.engine.ThumbEntity { *; }
--keep class com.thumbwar.input.InputEvent { *; }
-
-# Preserve line numbers for crash reporting
+# Readable stack traces in crash reports (map with build/outputs/mapping/release/mapping.txt)
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
-
-# Remove logging in release builds
--assumenosideeffects class android.util.Log {
-    public static *** d(...);
-    public static *** v(...);
-    public static *** i(...);
-}
-
--allowaccessmodification
-

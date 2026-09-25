@@ -56,12 +56,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
 
     buildFeatures {
@@ -124,27 +124,12 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         csv.required = false
     }
     sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
+    // Kotlin classes (not javac output); skip generated R/BuildConfig and Compose lambda holders
     classDirectories.setFrom(
-        fileTree(
-            mapOf(
-                "dir" to "${layout.buildDirectory}/intermediates/javac/debug",
-                "excludes" to listOf(
-                    "**/R.class",
-                    "**/R$*.class",
-                    "**/*ViewBinding*",
-                    "**/*Fragment*"
-                )
-            )
-        )
+        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+            exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/ComposableSingletons*")
+        }
     )
-    executionData.setFrom(
-        fileTree(
-            mapOf(
-                "dir" to layout.buildDirectory,
-                "includes" to listOf(
-                    "outputs/unit_test_code_coverage/debugUnitTest/**/*.exec"
-                )
-            )
-        )
-    )
+    // Written by the Gradle jacoco plugin's agent on the unit test task
+    executionData.setFrom(layout.buildDirectory.file("jacoco/testDebugUnitTest.exec"))
 }
