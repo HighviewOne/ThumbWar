@@ -120,10 +120,7 @@ fun GameScreen(
 
         // Countdown overlay
         if (gameState.phase == GamePhase.COUNTDOWN) {
-            CountdownOverlay(
-                text = gameState.countdownText,
-                beat = gameState.countdownBeat
-            )
+            CountdownOverlay(text = gameState.countdownText)
         }
 
         // Pin progress bar

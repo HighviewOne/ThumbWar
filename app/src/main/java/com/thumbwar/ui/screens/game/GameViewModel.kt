@@ -35,7 +35,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private var isTwoPlayer = false
     private var lastPhase = GamePhase.READY
-    private var lastCountdownBeat = 0
+    private var lastCountdownText = ""
     private var winsNeeded = 1
     private var arenaWidth = 0f
     private var arenaHeight = 0f
@@ -65,7 +65,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         engine.resetRound()
         engine.startGame()
         lastPhase = GamePhase.READY
-        lastCountdownBeat = 0
+        lastCountdownText = ""
         _gameState.value = engine.getState()
         startGameLoop()
     }
@@ -104,15 +104,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun handleSoundAndHaptics(state: GameState) {
         // Countdown beats
-        if (state.phase == GamePhase.COUNTDOWN && state.countdownBeat != lastCountdownBeat) {
-            lastCountdownBeat = state.countdownBeat
-            if (state.countdownText.length <= 1) {
-                soundManager.play(GameSound.COUNTDOWN_BEAT)
-                soundManager.vibrate(30)
-            } else {
-                soundManager.play(GameSound.COUNTDOWN_DECLARE)
-                soundManager.vibrate(50)
+        if (state.phase == GamePhase.COUNTDOWN) {
+            countdownSoundFor(lastCountdownText, state.countdownText)?.let { sound ->
+                soundManager.play(sound)
+                soundManager.vibrate(if (sound == GameSound.COUNTDOWN_DECLARE) 50 else 30)
             }
+            lastCountdownText = state.countdownText
         }
 
         // Phase transitions
@@ -166,7 +163,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         engine.nextRound()
         engine.startGame()
         lastPhase = GamePhase.READY
-        lastCountdownBeat = 0
+        lastCountdownText = ""
         _gameState.value = engine.getState()
         startGameLoop()
     }
@@ -187,4 +184,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         roundTransitionJob?.cancel()
         soundManager.release()
     }
+}
+
+/**
+ * Sound to play when the countdown text changes: a beep per number, a distinct cue for
+ * "I declare a thumb war!". Keyed on the text because the beat number stays at 4 during
+ * the declare phase.
+ */
+internal fun countdownSoundFor(previousText: String, text: String): GameSound? = when {
+    text == previousText || text.isEmpty() -> null
+    text.length <= 1 -> GameSound.COUNTDOWN_BEAT
+    else -> GameSound.COUNTDOWN_DECLARE
 }

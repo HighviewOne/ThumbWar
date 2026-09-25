@@ -17,24 +17,12 @@ import com.thumbwar.ui.theme.CountdownGlow
 import com.thumbwar.ui.theme.CountdownWhite
 
 @Composable
-fun CountdownOverlay(
-    text: String,
-    beat: Int
-) {
-    var lastBeat by remember { mutableIntStateOf(0) }
-    val animKey = if (beat != lastBeat) {
-        lastBeat = beat
-        beat
-    } else {
-        beat
-    }
+fun CountdownOverlay(text: String) {
+    // Restart the pop-in animation whenever the text changes (each number, then the declare line)
+    val scale = remember(text) { Animatable(2f) }
+    val alphaAnim = remember(text) { Animatable(0f) }
 
-    val scale = remember(animKey) { Animatable(2f) }
-    val alphaAnim = remember(animKey) { Animatable(0f) }
-
-    LaunchedEffect(animKey) {
-        scale.snapTo(2f)
-        alphaAnim.snapTo(0f)
+    LaunchedEffect(text) {
         scale.animateTo(1f, animationSpec = tween(250, easing = FastOutSlowInEasing))
         alphaAnim.animateTo(1f, animationSpec = tween(200))
     }
