@@ -37,11 +37,13 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private var lastPhase = GamePhase.READY
     private var lastCountdownBeat = 0
     private var winsNeeded = 1
+    private var arenaWidth = 0f
+    private var arenaHeight = 0f
 
     fun initialize(isTwoPlayer: Boolean, aiDifficulty: AiDifficulty, winsNeeded: Int = 1) {
         this.isTwoPlayer = isTwoPlayer
         this.winsNeeded = winsNeeded
-        engine = GameEngine(winsNeeded)
+        engine = newEngine()
         inputManager = InputManager(isTwoPlayer)
 
         if (!isTwoPlayer) {
@@ -49,6 +51,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         startGame()
+    }
+
+    private fun newEngine() = GameEngine(winsNeeded).also { it.setArenaSize(arenaWidth, arenaHeight) }
+
+    fun setArenaSize(width: Float, height: Float) {
+        arenaWidth = width
+        arenaHeight = height
+        engine.setArenaSize(width, height)
     }
 
     private fun startGame() {
@@ -161,7 +171,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun rematch() {
-        engine = GameEngine(winsNeeded)
+        engine = newEngine()
         startGame()
     }
 

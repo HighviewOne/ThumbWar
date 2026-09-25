@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.lifecycle.Lifecycle
@@ -85,6 +86,7 @@ fun GameScreen(
             gameState = gameState,
             modifier = Modifier
                 .fillMaxSize()
+                .onSizeChanged { viewModel.setArenaSize(it.width.toFloat(), it.height.toFloat()) }
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {

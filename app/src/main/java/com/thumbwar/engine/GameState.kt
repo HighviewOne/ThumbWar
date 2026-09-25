@@ -37,5 +37,6 @@ data class GameState(
     val p1RoundWins: Int = 0,
     val p2RoundWins: Int = 0,
     val winsNeeded: Int = 1,
-    val isMatchOver: Boolean = false
+    val isMatchOver: Boolean = false,
+    val arenaScale: ArenaScale = ArenaScale.SQUARE
 )

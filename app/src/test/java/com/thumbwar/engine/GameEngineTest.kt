@@ -259,6 +259,81 @@ class GameEngineTest {
         assertEquals(1, singleEngine.getState().winsNeeded)
     }
 
+    @Test
+    fun `pinned player escapes by dragging away`() {
+        engine.startGame()
+        advanceToPlaying()
+        pinPlayer2()
+
+        // Pinner holds still, pinned thumb drags away
+        engine.setPlayer1Target(engine.getState().thumb1.position)
+        engine.setPlayer2Target(Vector2(0.95f, 0.5f))
+        repeat(30) { engine.tick(GameConfig.TICK_RATE_MS) }
+
+        val state = engine.getState()
+        assertEquals(GamePhase.PLAYING, state.phase)
+        assertEquals(0f, state.pinProgress, 0.001f)
+        assertFalse(state.thumb2.isPinned)
+    }
+
+    @Test
+    fun `small wobble does not break a pin`() {
+        engine.startGame()
+        advanceToPlaying()
+        pinPlayer2()
+
+        engine.setPlayer1Target(engine.getState().thumb1.position)
+        val p2 = engine.getState().thumb2.position
+        engine.setPlayer2Target(Vector2(p2.x + 0.02f, p2.y))
+        repeat(30) { engine.tick(GameConfig.TICK_RATE_MS) }
+
+        assertEquals(GamePhase.PIN_IN_PROGRESS, engine.getState().phase)
+    }
+
+    @Test
+    fun `pinner who chases keeps the pin and wins`() {
+        engine.startGame()
+        advanceToPlaying()
+        pinPlayer2()
+
+        // Pinned thumb runs, pinner keeps its finger on the pinned thumb
+        engine.setPlayer2Target(Vector2(0.95f, 0.5f))
+        val ticks = ((GameConfig.PIN_DURATION_SECONDS * 1000 + 500) / GameConfig.TICK_RATE_MS).toInt()
+        repeat(ticks) {
+            engine.setPlayer1Target(engine.getState().thumb2.position)
+            engine.tick(GameConfig.TICK_RATE_MS)
+        }
+
+        val state = engine.getState()
+        assertEquals(GamePhase.GAME_OVER, state.phase)
+        assertEquals(1, state.winner)
+    }
+
+    @Test
+    fun `wide arena - thumbs visibly apart do not pin`() {
+        engine.setArenaSize(2000f, 1000f)
+        engine.startGame()
+        advanceToPlaying()
+
+        // Normalized distance 0.08 would pin on a square arena; on 2:1 it's 0.16 short-side units
+        engine.setPlayer1Target(Vector2(0.62f, 0.5f))
+        repeat(100) { engine.tick(GameConfig.TICK_RATE_MS) }
+
+        assertEquals(GamePhase.PLAYING, engine.getState().phase)
+    }
+
+    /** Player 1 drives onto a stationary player 2 until a pin starts. */
+    private fun pinPlayer2(eng: GameEngine = engine) {
+        eng.setPlayer1Target(Vector2(GameConfig.PLAYER2_START_X, GameConfig.PLAYER2_START_Y))
+        var ticks = 0
+        while (eng.getState().phase == GamePhase.PLAYING && ticks++ < 200) {
+            eng.tick(GameConfig.TICK_RATE_MS)
+        }
+        val state = eng.getState()
+        assertEquals(GamePhase.PIN_IN_PROGRESS, state.phase)
+        assertEquals(1, state.pinnerPlayer)
+    }
+
     private fun winRound(eng: GameEngine = engine) {
         val target = Vector2(0.5f, 0.5f)
         eng.setPlayer1Target(target)

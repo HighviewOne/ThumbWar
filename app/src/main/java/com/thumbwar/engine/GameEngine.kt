@@ -25,6 +25,8 @@ class GameEngine(private val winsNeeded: Int = 1) {
     private val collisionDetector = CollisionDetector()
     val phaseManager = PhaseManager()
 
+    private var arenaScale = ArenaScale.SQUARE
+
     private var pinProgress: Float = 0f
     private var pinnerPlayer: Int = 0
     private var p1Score: Int = 0
@@ -68,6 +70,14 @@ class GameEngine(private val winsNeeded: Int = 1) {
         thumb2.clearTarget()
     }
 
+    /**
+     * Sets the on-screen arena size so distances and speeds match what is drawn,
+     * whatever the aspect ratio. Positions stay normalized, so this can change at any time.
+     */
+    fun setArenaSize(width: Float, height: Float) {
+        arenaScale = ArenaScale.fromSize(width, height)
+    }
+
     fun tick(deltaMs: Long) {
         elapsedTimeMs += deltaMs
         val deltaSeconds = deltaMs / 1000f
@@ -82,10 +92,10 @@ class GameEngine(private val winsNeeded: Int = 1) {
     }
 
     private fun updatePlaying(deltaSeconds: Float) {
-        thumb1.update(deltaSeconds)
-        thumb2.update(deltaSeconds)
+        thumb1.update(deltaSeconds, arenaScale)
+        thumb2.update(deltaSeconds, arenaScale)
 
-        val pinResult = collisionDetector.checkPin(thumb1, thumb2)
+        val pinResult = collisionDetector.checkPin(thumb1, thumb2, arenaScale)
         if (pinResult.isPinning) {
             pinnerPlayer = pinResult.pinnerPlayer
             pinProgress = 0f
@@ -103,13 +113,14 @@ class GameEngine(private val winsNeeded: Int = 1) {
     }
 
     private fun updatePin(deltaSeconds: Float) {
-        thumb1.update(deltaSeconds)
-        thumb2.update(deltaSeconds)
+        thumb1.update(deltaSeconds, arenaScale)
+        thumb2.update(deltaSeconds, arenaScale)
 
-        val distance = thumb1.position.distanceTo(thumb2.position)
+        val distance = arenaScale.distance(thumb1.position, thumb2.position)
 
-        // Check if pinned thumb escaped
-        if (distance >= GameConfig.PIN_OVERLAP_THRESHOLD) {
+        // Pinned thumb escaped (it moves slowly, so the pinner has to chase to hold the pin).
+        // Escape distance is larger than the pin threshold so a pin isn't lost to a tiny wobble.
+        if (distance >= GameConfig.PIN_ESCAPE_DISTANCE) {
             cancelPin()
             return
         }
@@ -177,6 +188,7 @@ class GameEngine(private val winsNeeded: Int = 1) {
         p1RoundWins = p1RoundWins,
         p2RoundWins = p2RoundWins,
         winsNeeded = winsNeeded,
-        isMatchOver = isMatchOver
+        isMatchOver = isMatchOver,
+        arenaScale = arenaScale
     )
 }

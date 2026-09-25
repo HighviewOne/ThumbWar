@@ -25,9 +25,14 @@ Frame Update Loop:
   3. If pin countdown >= 2500ms:
        - Pin successful → Current player wins round
        - Award point and transition to ROUND_OVER phase
-  4. If overlap is broken:
+  4. If the pinned thumb breaks free (distance >= 2.5 × radius):
        - Reset pin countdown
 ```
+
+While pinned, a thumb moves at half speed (`PINNED_SPEED_FACTOR`), so the pinner has to
+chase to hold the pin. Escaping takes more distance than starting a pin (2.5 vs 2 radii),
+so a small wobble doesn't break it. All distances and speeds are measured in units of the
+arena's shorter side (`ArenaScale`), so they match what's on screen at any aspect ratio.
 
 #### Collision Detection
 

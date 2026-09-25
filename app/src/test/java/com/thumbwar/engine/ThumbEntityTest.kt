@@ -47,14 +47,40 @@ class ThumbEntityTest {
     }
 
     @Test
-    fun `pinned thumb does not move`() {
+    fun `pinned thumb moves at reduced speed`() {
         val thumb = ThumbEntity(0.5f, 0.5f)
         thumb.isPinned = true
-        thumb.setTarget(Vector2(0.9f, 0.9f))
+        thumb.setTarget(Vector2(0.9f, 0.5f))
+        thumb.update(0.1f)
+
+        val expected = GameConfig.THUMB_SPEED * GameConfig.PINNED_SPEED_FACTOR * 0.1f
+        assertEquals(0.5f + expected, thumb.position.x, epsilon)
+    }
+
+    @Test
+    fun `pinned thumb without target stays put`() {
+        val thumb = ThumbEntity(0.5f, 0.5f)
+        thumb.isPinned = true
         thumb.update(0.1f)
 
         assertEquals(0.5f, thumb.position.x, epsilon)
         assertEquals(0.5f, thumb.position.y, epsilon)
+    }
+
+    @Test
+    fun `speed is uniform on screen in a wide arena`() {
+        // 2:1 arena: one normalized x unit is twice as long on screen as one y unit
+        val scale = ArenaScale.fromSize(2000f, 1000f)
+        val horizontal = ThumbEntity(0.2f, 0.5f)
+        horizontal.setTarget(Vector2(0.9f, 0.5f))
+        horizontal.update(0.1f, scale)
+        val vertical = ThumbEntity(0.5f, 0.1f)
+        vertical.setTarget(Vector2(0.5f, 0.9f))
+        vertical.update(0.1f, scale)
+
+        val maxMove = GameConfig.THUMB_SPEED * 0.1f
+        assertEquals(maxMove, (horizontal.position.x - 0.2f) * scale.x, epsilon)
+        assertEquals(maxMove, (vertical.position.y - 0.1f) * scale.y, epsilon)
     }
 
     @Test

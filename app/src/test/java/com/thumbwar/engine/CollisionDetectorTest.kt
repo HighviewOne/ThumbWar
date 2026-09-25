@@ -75,4 +75,31 @@ class CollisionDetectorTest {
         val result = detector.checkPin(thumb1, thumb2)
         assertTrue(result.isPinning)
     }
+
+    @Test
+    fun `wide arena - no pin when thumbs are visibly apart horizontally`() {
+        // Normalized gap 0.1 < threshold, but on a 2:1 screen that's 0.2 short-side units
+        val scale = ArenaScale.fromSize(2000f, 1000f)
+        val thumb1 = ThumbEntity(0.5f, 0.5f)
+        val thumb2 = ThumbEntity(0.6f, 0.5f)
+        thumb1.setTarget(Vector2(0.9f, 0.5f))
+        thumb1.update(0.016f, scale)
+
+        assertFalse(detector.checkPin(thumb1, thumb2, scale).isPinning)
+    }
+
+    @Test
+    fun `tall arena - pin when thumbs visibly overlap vertically`() {
+        // Normalized gap 0.07 on a 1:2 screen is 0.14 short-side units: no pin
+        // Normalized gap 0.05 is 0.10 short-side units: pin
+        val scale = ArenaScale.fromSize(1000f, 2000f)
+        val thumb2Far = ThumbEntity(0.5f, 0.57f)
+        val thumb2Near = ThumbEntity(0.5f, 0.55f)
+        val thumb1 = ThumbEntity(0.5f, 0.5f)
+        thumb1.setTarget(Vector2(0.5f, 0.9f))
+        thumb1.update(0.001f, scale)
+
+        assertFalse(detector.checkPin(thumb1, thumb2Far, scale).isPinning)
+        assertTrue(detector.checkPin(thumb1, thumb2Near, scale).isPinning)
+    }
 }

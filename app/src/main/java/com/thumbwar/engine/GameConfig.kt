@@ -1,12 +1,14 @@
 package com.thumbwar.engine
 
 object GameConfig {
-    // Thumb dimensions (normalized coordinates 0..1)
+    // Thumb dimensions (world units: 1.0 = arena's shorter side, see ArenaScale)
     const val THUMB_RADIUS = 0.06f
     const val THUMB_SPEED = 0.8f // max units per second
 
     // Pin mechanics
     const val PIN_OVERLAP_THRESHOLD = THUMB_RADIUS * 2 // distance for pin detection
+    const val PIN_ESCAPE_DISTANCE = THUMB_RADIUS * 2.5f // pinned thumb must get this far away to break free
+    const val PINNED_SPEED_FACTOR = 0.5f // pinned thumb moves at this fraction of THUMB_SPEED
     const val PIN_DURATION_SECONDS = 2.5f // seconds to hold pin for win
 
     // Countdown

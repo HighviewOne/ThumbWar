@@ -49,7 +49,7 @@ class AiController(private val difficulty: AiDifficulty) {
 
         val myPos = state.thumb2.position
         val opponentPos = state.thumb1.position
-        val distance = myPos.distanceTo(opponentPos)
+        val distance = state.arenaScale.distance(myPos, opponentPos)
 
         // Rest behavior for easy AI
         if (aiState == AiState.REST) {

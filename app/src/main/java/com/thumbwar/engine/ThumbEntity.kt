@@ -23,14 +23,16 @@ class ThumbEntity(
         targetPosition = null
     }
 
-    fun update(deltaSeconds: Float) {
+    fun update(deltaSeconds: Float, scale: ArenaScale = ArenaScale.SQUARE) {
         val target = targetPosition
-        if (target != null && !isPinned) {
-            val diff = target - position
+        if (target != null) {
+            // Move in world units so speed is the same on both axes, then convert back
+            val diff = scale.toWorld(target - position)
             val dist = diff.length()
             if (dist > 0.001f) {
-                val maxMove = GameConfig.THUMB_SPEED * deltaSeconds
-                val move = if (dist <= maxMove) diff else diff.normalized() * maxMove
+                val speed = if (isPinned) GameConfig.THUMB_SPEED * GameConfig.PINNED_SPEED_FACTOR else GameConfig.THUMB_SPEED
+                val maxMove = speed * deltaSeconds
+                val move = scale.toNormalized(if (dist <= maxMove) diff else diff.normalized() * maxMove)
                 velocity = move / deltaSeconds
                 position = position + move
             } else {
