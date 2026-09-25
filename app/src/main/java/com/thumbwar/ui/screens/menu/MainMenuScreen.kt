@@ -9,6 +9,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.thumbwar.ai.AiDifficulty
+import com.thumbwar.data.PreferencesRepository
 import com.thumbwar.data.StatsRepository
 import com.thumbwar.ui.theme.MenuAccent
 import com.thumbwar.ui.theme.RingGold
@@ -27,6 +28,8 @@ fun MainMenuScreen(
     val context = LocalContext.current
     val statsRepo = remember { StatsRepository(context) }
     val currentStreak by statsRepo.currentStreak.collectAsState(initial = 0)
+    val prefsRepo = remember { PreferencesRepository(context) }
+    val defaultDifficulty by prefsRepo.defaultDifficulty.collectAsState(initial = AiDifficulty.MEDIUM.name)
 
     Column(
         modifier = Modifier
@@ -107,19 +110,24 @@ fun MainMenuScreen(
             text = {
                 Column {
                     AiDifficulty.entries.forEach { difficulty ->
-                        TextButton(
-                            onClick = {
-                                showDifficultyDialog = false
-                                pendingDifficulty = difficulty
-                                pendingTwoPlayer = false
-                                showRoundChoiceDialog = true
-                            },
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                difficulty.name,
-                                style = MaterialTheme.typography.titleLarge
-                            )
+                        val onClick = {
+                            showDifficultyDialog = false
+                            pendingDifficulty = difficulty
+                            pendingTwoPlayer = false
+                            showRoundChoiceDialog = true
+                        }
+                        val label = @Composable {
+                            Text(difficulty.name, style = MaterialTheme.typography.titleLarge)
+                        }
+                        // The default difficulty from Settings is the highlighted choice
+                        if (difficulty.name == defaultDifficulty) {
+                            Button(
+                                onClick = onClick,
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.buttonColors(containerColor = MenuAccent)
+                            ) { label() }
+                        } else {
+                            TextButton(onClick = onClick, modifier = Modifier.fillMaxWidth()) { label() }
                         }
                     }
                 }

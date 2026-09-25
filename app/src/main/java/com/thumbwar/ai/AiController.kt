@@ -6,7 +6,10 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 
-class AiController(private val difficulty: AiDifficulty) {
+class AiController(
+    private val difficulty: AiDifficulty,
+    private val random: Random = Random.Default
+) {
 
     private var timeSinceLastDecision = 0L
     private var currentTarget: Vector2? = null
@@ -61,7 +64,7 @@ class AiController(private val difficulty: AiDifficulty) {
         }
 
         // Deliberate mistakes
-        if (Random.nextFloat() < mistakeChance) {
+        if (random.nextFloat() < mistakeChance) {
             currentTarget = randomNearby(myPos, 0.1f)
             return currentTarget
         }
@@ -77,9 +80,9 @@ class AiController(private val difficulty: AiDifficulty) {
 
     private fun updateEasy(myPos: Vector2, opponentPos: Vector2, distance: Float) {
         // Slow, random movement with frequent rests
-        if (Random.nextFloat() < 0.15f) {
+        if (random.nextFloat() < 0.15f) {
             aiState = AiState.REST
-            restTimer = (500..1500).random().toLong()
+            restTimer = random.nextLong(500, 1501)
             return
         }
 
@@ -96,7 +99,7 @@ class AiController(private val difficulty: AiDifficulty) {
         aiState = when {
             state.thumb2.isPinned -> AiState.DODGE
             distance < 0.15f -> AiState.ATTACK
-            distance < 0.3f -> if (Random.nextFloat() < 0.5f) AiState.APPROACH else AiState.DODGE
+            distance < 0.3f -> if (random.nextFloat() < 0.5f) AiState.APPROACH else AiState.DODGE
             else -> AiState.APPROACH
         }
 
@@ -105,7 +108,7 @@ class AiController(private val difficulty: AiDifficulty) {
             AiState.DODGE -> {
                 val away = (myPos - opponentPos).normalized()
                 val perpendicular = Vector2(-away.y, away.x)
-                val dodgeDir = if (Random.nextBoolean()) perpendicular else perpendicular * -1f
+                val dodgeDir = if (random.nextBoolean()) perpendicular else perpendicular * -1f
                 myPos + dodgeDir * 0.1f
             }
             AiState.ATTACK -> opponentPos
@@ -123,7 +126,7 @@ class AiController(private val difficulty: AiDifficulty) {
             distance < 0.12f && !state.thumb2.isPinned -> AiState.ATTACK
             distance < 0.25f -> {
                 // Feint behavior
-                if (Random.nextFloat() < 0.3f) AiState.DODGE else AiState.ATTACK
+                if (random.nextFloat() < 0.3f) AiState.DODGE else AiState.ATTACK
             }
             else -> AiState.APPROACH
         }
@@ -132,7 +135,7 @@ class AiController(private val difficulty: AiDifficulty) {
             AiState.APPROACH -> myPos.lerp(predictedPos, speed * 0.7f)
             AiState.DODGE -> {
                 val away = (myPos - opponentPos).normalized()
-                val angle = Random.nextFloat() * Math.PI.toFloat() * 0.5f - Math.PI.toFloat() * 0.25f
+                val angle = random.nextFloat() * Math.PI.toFloat() * 0.5f - Math.PI.toFloat() * 0.25f
                 val dodgeDir = Vector2(
                     away.x * cos(angle) - away.y * sin(angle),
                     away.x * sin(angle) + away.y * cos(angle)
@@ -146,8 +149,8 @@ class AiController(private val difficulty: AiDifficulty) {
 
     private fun randomNearby(pos: Vector2, range: Float): Vector2 {
         return Vector2(
-            (pos.x + Random.nextFloat() * range * 2 - range).coerceIn(0.05f, 0.95f),
-            (pos.y + Random.nextFloat() * range * 2 - range).coerceIn(0.05f, 0.95f)
+            (pos.x + random.nextFloat() * range * 2 - range).coerceIn(0.05f, 0.95f),
+            (pos.y + random.nextFloat() * range * 2 - range).coerceIn(0.05f, 0.95f)
         )
     }
 }

@@ -7,6 +7,8 @@ import com.thumbwar.ai.AiController
 import com.thumbwar.ai.AiDifficulty
 import com.thumbwar.audio.GameSound
 import com.thumbwar.audio.SoundManager
+import com.thumbwar.data.PreferencesRepository
+import com.thumbwar.data.StatsRepository
 import com.thumbwar.engine.GameConfig
 import com.thumbwar.engine.GameEngine
 import com.thumbwar.engine.GamePhase
@@ -29,6 +31,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private var gameLoopJob: Job? = null
     private var roundTransitionJob: Job? = null
     private val soundManager = SoundManager(application)
+    private val statsRepository = StatsRepository(application)
 
     private val _gameState = MutableStateFlow(engine.getState())
     val gameState: StateFlow<GameState> = _gameState.asStateFlow()
@@ -39,6 +42,12 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private var winsNeeded = 1
     private var arenaWidth = 0f
     private var arenaHeight = 0f
+
+    init {
+        val prefs = PreferencesRepository(application)
+        viewModelScope.launch { prefs.soundEnabled.collect { soundManager.setSoundEnabled(it) } }
+        viewModelScope.launch { prefs.vibrationEnabled.collect { soundManager.setVibrationEnabled(it) } }
+    }
 
     fun initialize(isTwoPlayer: Boolean, aiDifficulty: AiDifficulty, winsNeeded: Int = 1) {
         this.isTwoPlayer = isTwoPlayer
@@ -122,10 +131,18 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                 GamePhase.GAME_OVER -> {
                     soundManager.play(GameSound.VICTORY_FANFARE)
                     soundManager.vibratePattern(longArrayOf(0, 100, 50, 100, 50, 200))
+                    recordMatchResult(state)
                 }
                 else -> {}
             }
             lastPhase = state.phase
+        }
+    }
+
+    private fun recordMatchResult(state: GameState) {
+        val playerWon = singlePlayerMatchResult(state, isTwoPlayer) ?: return
+        viewModelScope.launch {
+            if (playerWon) statsRepository.recordWin() else statsRepository.recordLoss()
         }
     }
 
@@ -195,4 +212,14 @@ internal fun countdownSoundFor(previousText: String, text: String): GameSound? =
     text == previousText || text.isEmpty() -> null
     text.length <= 1 -> GameSound.COUNTDOWN_BEAT
     else -> GameSound.COUNTDOWN_DECLARE
+}
+
+/**
+ * Stats track single-player matches against the computer: true if the human (player 1) won
+ * the match, false if the AI won, null when there's nothing to record (2-player, or the match
+ * isn't over yet — e.g. the end of round 1 in best-of-3).
+ */
+internal fun singlePlayerMatchResult(state: GameState, isTwoPlayer: Boolean): Boolean? = when {
+    isTwoPlayer || state.phase != GamePhase.GAME_OVER || !state.isMatchOver -> null
+    else -> state.winner == 1
 }

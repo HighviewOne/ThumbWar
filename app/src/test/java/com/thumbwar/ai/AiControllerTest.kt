@@ -4,10 +4,12 @@ import com.thumbwar.engine.GamePhase
 import com.thumbwar.engine.GameState
 import com.thumbwar.engine.ThumbState
 import com.thumbwar.util.Vector2
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.random.Random
 
 class AiControllerTest {
 
@@ -25,19 +27,26 @@ class AiControllerTest {
 
     @Test
     fun `easy AI returns a target`() {
-        val ai = AiController(AiDifficulty.EASY)
+        val ai = AiController(AiDifficulty.EASY, Random(SEED))
         val state = makeGameState()
-        // Need to exceed reaction delay
-        val target = ai.update(state, 500)
-        // May or may not return null on first call, but should eventually return a target
-        val target2 = ai.update(state, 500)
-        // At least one should be non-null after enough time
-        assertTrue("AI should produce a target", target != null || target2 != null)
+        // Easy AI may rest (returning no target) for up to 1.5s, so give it a few decisions
+        val targets = List(10) { ai.update(state, 500) }
+        assertTrue("AI should produce a target", targets.any { it != null })
+    }
+
+    @Test
+    fun `same seed gives the same decisions`() {
+        val state = makeGameState()
+        fun run(): List<Vector2?> {
+            val ai = AiController(AiDifficulty.HARD, Random(SEED))
+            return List(20) { ai.update(state, 100) }
+        }
+        assertEquals(run(), run())
     }
 
     @Test
     fun `medium AI returns a target`() {
-        val ai = AiController(AiDifficulty.MEDIUM)
+        val ai = AiController(AiDifficulty.MEDIUM, Random(SEED))
         val state = makeGameState()
         ai.update(state, 300)
         val target = ai.update(state, 300)
@@ -46,7 +55,7 @@ class AiControllerTest {
 
     @Test
     fun `hard AI returns a target`() {
-        val ai = AiController(AiDifficulty.HARD)
+        val ai = AiController(AiDifficulty.HARD, Random(SEED))
         val state = makeGameState()
         ai.update(state, 100)
         val target = ai.update(state, 100)
@@ -55,7 +64,7 @@ class AiControllerTest {
 
     @Test
     fun `AI target stays within arena bounds`() {
-        val ai = AiController(AiDifficulty.HARD)
+        val ai = AiController(AiDifficulty.HARD, Random(SEED))
         val state = makeGameState()
 
         repeat(50) {
@@ -71,7 +80,7 @@ class AiControllerTest {
 
     @Test
     fun `AI returns null before reaction delay`() {
-        val ai = AiController(AiDifficulty.EASY) // 400ms delay
+        val ai = AiController(AiDifficulty.EASY, Random(SEED)) // 400ms delay
         val state = makeGameState()
         // First call with small delta — should return the initial currentTarget (null)
         val target = ai.update(state, 10)
@@ -80,8 +89,8 @@ class AiControllerTest {
 
     @Test
     fun `different difficulties have different behavior`() {
-        val easyAi = AiController(AiDifficulty.EASY)
-        val hardAi = AiController(AiDifficulty.HARD)
+        val easyAi = AiController(AiDifficulty.EASY, Random(SEED))
+        val hardAi = AiController(AiDifficulty.HARD, Random(SEED))
 
         val state = makeGameState(
             thumb1Pos = Vector2(0.5f, 0.5f),
@@ -100,5 +109,9 @@ class AiControllerTest {
         // Both should produce targets
         assertTrue("Easy AI should produce targets", easyTargets.isNotEmpty())
         assertTrue("Hard AI should produce targets", hardTargets.isNotEmpty())
+    }
+
+    private companion object {
+        const val SEED = 42
     }
 }
