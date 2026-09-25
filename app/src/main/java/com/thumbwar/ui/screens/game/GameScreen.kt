@@ -8,7 +8,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -95,32 +94,16 @@ fun GameScreen(
                             val canvasHeight = size.height.toFloat()
 
                             event.changes.forEach { change ->
-                                when (event.type) {
-                                    PointerEventType.Press -> {
-                                        viewModel.processPointerDown(
-                                            change.id.value,
-                                            change.position.x,
-                                            change.position.y,
-                                            canvasWidth,
-                                            canvasHeight
-                                        )
-                                        change.consume()
-                                    }
-                                    PointerEventType.Move -> {
-                                        viewModel.processPointerMove(
-                                            change.id.value,
-                                            change.position.x,
-                                            change.position.y,
-                                            canvasWidth,
-                                            canvasHeight
-                                        )
-                                        change.consume()
-                                    }
-                                    PointerEventType.Release -> {
-                                        viewModel.processPointerUp(change.id.value)
-                                        change.consume()
-                                    }
-                                }
+                                viewModel.processPointer(
+                                    change.id.value,
+                                    change.position.x,
+                                    change.position.y,
+                                    change.pressed,
+                                    change.previousPressed,
+                                    canvasWidth,
+                                    canvasHeight
+                                )
+                                change.consume()
                             }
                         }
                     }

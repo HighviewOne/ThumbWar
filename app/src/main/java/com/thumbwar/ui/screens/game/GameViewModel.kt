@@ -149,16 +149,17 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun processPointerDown(pointerId: Long, x: Float, y: Float, canvasWidth: Float, canvasHeight: Float) {
-        inputManager?.processPointerDown(pointerId, x, y, canvasWidth, canvasHeight)?.let { onInputEvent(it) }
-    }
-
-    fun processPointerMove(pointerId: Long, x: Float, y: Float, canvasWidth: Float, canvasHeight: Float) {
-        inputManager?.processPointerMove(pointerId, x, y, canvasWidth, canvasHeight)?.let { onInputEvent(it) }
-    }
-
-    fun processPointerUp(pointerId: Long) {
-        inputManager?.processPointerUp(pointerId)?.let { onInputEvent(it) }
+    fun processPointer(
+        pointerId: Long,
+        x: Float,
+        y: Float,
+        pressed: Boolean,
+        previousPressed: Boolean,
+        canvasWidth: Float,
+        canvasHeight: Float
+    ) {
+        inputManager?.processPointer(pointerId, x, y, pressed, previousPressed, canvasWidth, canvasHeight)
+            ?.let { onInputEvent(it) }
     }
 
     fun startNextRound() {
@@ -168,11 +169,6 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         lastCountdownBeat = 0
         _gameState.value = engine.getState()
         startGameLoop()
-    }
-
-    fun rematch() {
-        engine = newEngine()
-        startGame()
     }
 
     fun pause() {

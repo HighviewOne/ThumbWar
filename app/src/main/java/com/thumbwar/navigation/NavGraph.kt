@@ -14,10 +14,11 @@ object Routes {
     const val MAIN_MENU = "main_menu"
     const val GAME = "game/{mode}/{difficulty}/{winsNeeded}"
     const val SETTINGS = "settings"
-    const val GAME_OVER = "game_over/{winner}/{p1Score}/{p2Score}/{winsNeeded}"
+    const val GAME_OVER = "game_over/{mode}/{difficulty}/{winner}/{p1Score}/{p2Score}/{winsNeeded}"
 
     fun game(mode: String, difficulty: String = "medium", winsNeeded: Int = 1) = "game/$mode/$difficulty/$winsNeeded"
-    fun gameOver(winner: Int, p1Score: Int, p2Score: Int, winsNeeded: Int = 1) = "game_over/$winner/$p1Score/$p2Score/$winsNeeded"
+    fun gameOver(mode: String, difficulty: String, winner: Int, p1Score: Int, p2Score: Int, winsNeeded: Int = 1) =
+        "game_over/$mode/$difficulty/$winner/$p1Score/$p2Score/$winsNeeded"
 }
 
 @Composable
@@ -50,7 +51,7 @@ fun NavGraph(navController: NavHostController) {
                 aiDifficulty = difficulty,
                 winsNeeded = winsNeeded,
                 onGameOver = { winner, p1Score, p2Score ->
-                    navController.navigate(Routes.gameOver(winner, p1Score, p2Score, winsNeeded)) {
+                    navController.navigate(Routes.gameOver(mode, difficultyStr, winner, p1Score, p2Score, winsNeeded)) {
                         popUpTo(Routes.MAIN_MENU)
                     }
                 },
@@ -63,6 +64,8 @@ fun NavGraph(navController: NavHostController) {
         }
 
         composable(Routes.GAME_OVER) { backStackEntry ->
+            val mode = backStackEntry.arguments?.getString("mode") ?: "single"
+            val difficulty = backStackEntry.arguments?.getString("difficulty") ?: "medium"
             val winner = backStackEntry.arguments?.getString("winner")?.toIntOrNull() ?: 1
             val p1Score = backStackEntry.arguments?.getString("p1Score")?.toIntOrNull() ?: 0
             val p2Score = backStackEntry.arguments?.getString("p2Score")?.toIntOrNull() ?: 0
@@ -74,7 +77,10 @@ fun NavGraph(navController: NavHostController) {
                 p2Score = p2Score,
                 winsNeeded = winsNeeded,
                 onRematch = {
-                    navController.popBackStack()
+                    // Game screen was already popped on game over; start a fresh one with the same settings
+                    navController.navigate(Routes.game(mode, difficulty, winsNeeded)) {
+                        popUpTo(Routes.MAIN_MENU)
+                    }
                 },
                 onMainMenu = {
                     navController.popBackStack(Routes.MAIN_MENU, inclusive = false)
