@@ -13,7 +13,7 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=flat-square&logo=kotlin&logoColor=white)](#)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](#license)
 
-### [⬇ Download APK](https://github.com/HighviewOne/ThumbWar/releases/latest/download/app-debug.apk) · [🎮 Website](https://highviewone.github.io/ThumbWar/) · [📖 Docs](#documentation)
+### [⬇ Download APK](https://github.com/HighviewOne/ThumbWar/releases/latest/download/app-release.apk) · [🎮 Website](https://highviewone.github.io/ThumbWar/) · [📖 Docs](#documentation)
 
 </div>
 
