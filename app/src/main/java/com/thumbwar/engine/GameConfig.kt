@@ -4,6 +4,7 @@ object GameConfig {
     // Thumb dimensions (world units: 1.0 = arena's shorter side, see ArenaScale)
     const val THUMB_RADIUS = 0.06f
     const val THUMB_SPEED = 0.8f // max units per second
+    const val COAST_DRAG = 10f // per second: a released thumb keeps ~85% of its speed each 16 ms frame
 
     // Pin mechanics
     const val PIN_OVERLAP_THRESHOLD = THUMB_RADIUS * 2 // distance for pin detection
@@ -30,9 +31,6 @@ object GameConfig {
 
     // Game tick rate
     const val TICK_RATE_MS = 16L // ~60fps
-
-    // Scores
-    const val WINS_NEEDED = 1 // best of 1 by default
 
     // Round transitions
     const val ROUND_TRANSITION_DELAY_MS = 2000L

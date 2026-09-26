@@ -1,6 +1,7 @@
 package com.thumbwar.engine
 
 import com.thumbwar.util.Vector2
+import kotlin.math.exp
 
 class ThumbEntity(
     startX: Float,
@@ -39,8 +40,8 @@ class ThumbEntity(
                 velocity = Vector2.ZERO
             }
         } else if (!isPinned) {
-            // Decelerate when no target
-            velocity = velocity * 0.85f
+            // Decelerate when no target, by elapsed time so the slide is the same at any frame rate
+            velocity = velocity * exp(-GameConfig.COAST_DRAG * deltaSeconds)
             if (velocity.length() < 0.01f) {
                 velocity = Vector2.ZERO
             }

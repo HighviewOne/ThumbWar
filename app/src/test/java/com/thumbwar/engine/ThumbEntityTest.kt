@@ -98,6 +98,21 @@ class ThumbEntityTest {
     }
 
     @Test
+    fun `coasting slows down the same at any frame rate`() {
+        fun coast(frames: Int, frameSeconds: Float): Float {
+            val thumb = ThumbEntity(0.2f, 0.5f)
+            thumb.setTarget(Vector2(0.9f, 0.5f))
+            thumb.update(0.016f)
+            thumb.clearTarget()
+            repeat(frames) { thumb.update(frameSeconds) }
+            return thumb.velocity.length()
+        }
+
+        // 0.1 s of coasting at 60 fps and at 20 fps
+        assertEquals(coast(6, 0.1f / 6), coast(2, 0.05f), 0.001f)
+    }
+
+    @Test
     fun `reset restores initial state`() {
         val thumb = ThumbEntity(0.3f, 0.5f)
         thumb.setTarget(Vector2(0.8f, 0.8f))
