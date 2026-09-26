@@ -72,6 +72,11 @@ android {
         kotlinCompilerExtensionVersion = "1.5.5"
     }
 
+    testOptions {
+        // Robolectric needs merged resources and the manifest to run Compose UI tests on the JVM
+        unitTests.isIncludeAndroidResources = true
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -101,6 +106,11 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
     testImplementation("io.mockk:mockk:1.13.8")
+    // JVM UI tests: Compose screens and Android APIs under Robolectric, so they run in CI and count toward coverage
+    testImplementation(composeBom)
+    testImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation("androidx.test.ext:junit:1.1.5")
+    testImplementation("org.robolectric:robolectric:4.15.1")
 
     androidTestImplementation(composeBom)
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
@@ -114,6 +124,14 @@ dependencies {
 
 jacoco {
     toolVersion = "0.8.10"
+}
+
+// Record coverage for classes Robolectric loads through its own class loader
+tasks.withType<Test>().configureEach {
+    configure<JacocoTaskExtension> {
+        isIncludeNoLocationClasses = true
+        excludes = listOf("jdk.internal.*")
+    }
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {
