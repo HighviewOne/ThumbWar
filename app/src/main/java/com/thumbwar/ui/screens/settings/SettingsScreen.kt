@@ -91,7 +91,7 @@ fun SettingsScreen(onBack: () -> Unit) {
         }
 
         Spacer(modifier = Modifier.height(32.dp))
-        Divider()
+        HorizontalDivider()
         Spacer(modifier = Modifier.height(16.dp))
 
         // Stats
