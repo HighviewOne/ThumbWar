@@ -95,6 +95,7 @@ round fresh.
 | Countdown number | beep | 30 ms |
 | "I declare a thumb war!" | distinct beep | 50 ms |
 | Pin starts | thud | 100 ms |
+| Pin held | tick, speeding up from every 450 ms to every 120 ms as the ring fills | 15 ms per tick |
 | Round won (match continues) | pin-complete cue | 150 ms |
 | Match won | fanfare | pattern |
 

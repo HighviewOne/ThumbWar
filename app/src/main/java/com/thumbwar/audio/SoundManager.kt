@@ -40,14 +40,17 @@ class SoundManager(private val context: Context) {
             GameSound.COUNTDOWN_BEAT -> ToneGenerator.TONE_PROP_BEEP
             GameSound.COUNTDOWN_DECLARE -> ToneGenerator.TONE_PROP_BEEP2
             GameSound.COLLISION_THUD -> ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK
-            GameSound.PIN_TICK -> ToneGenerator.TONE_PROP_NACK
+            GameSound.PIN_TICK -> ToneGenerator.TONE_DTMF_9
             GameSound.PIN_COMPLETE -> ToneGenerator.TONE_PROP_ACK
             GameSound.VICTORY_FANFARE -> ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD
             GameSound.BUTTON_TAP -> ToneGenerator.TONE_PROP_BEEP
         }
 
+        // Pin ticks come as fast as every 120 ms, so they must end before the next one starts
+        val durationMs = if (sound == GameSound.PIN_TICK) 50 else 150
+
         try {
-            toneGenerator?.startTone(toneType, 150)
+            toneGenerator?.startTone(toneType, durationMs)
         } catch (_: Exception) {}
     }
 

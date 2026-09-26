@@ -47,6 +47,7 @@ class GameViewModel(
     private var isTwoPlayer = false
     private var lastPhase = GamePhase.READY
     private var lastCountdownText = ""
+    private var nextPinTickProgress = 0f
     private var winsNeeded = 1
     private var arenaWidth = 0f
     private var arenaHeight = 0f
@@ -139,6 +140,17 @@ class GameViewModel(
                 soundManager.vibrate(if (sound == GameSound.COUNTDOWN_DECLARE) 50 else 30)
             }
             lastCountdownText = state.countdownText
+        }
+
+        // Pin ticks, speeding up as the ring fills
+        if (state.phase == GamePhase.PIN_IN_PROGRESS) {
+            if (lastPhase != GamePhase.PIN_IN_PROGRESS) {
+                nextPinTickProgress = pinTickStep(0f) // the thud marks the start; first tick one step later
+            } else if (state.pinProgress >= nextPinTickProgress && state.pinProgress < 1f) {
+                soundManager.play(GameSound.PIN_TICK)
+                soundManager.vibrate(15)
+                nextPinTickProgress = state.pinProgress + pinTickStep(state.pinProgress)
+            }
         }
 
         // Phase transitions
@@ -286,6 +298,22 @@ internal fun countdownSoundFor(previousText: String, text: String): GameSound? =
     text.length <= 1 -> GameSound.COUNTDOWN_BEAT
     else -> GameSound.COUNTDOWN_DECLARE
 }
+
+/**
+ * Time between pin ticks: slow when a pin starts, quick as it's about to win, so the
+ * ticking builds tension. [progress] is the pin's fill, 0 to 1.
+ */
+internal fun pinTickIntervalMs(progress: Float): Long {
+    val p = progress.coerceIn(0f, 1f)
+    return (PIN_TICK_FIRST_INTERVAL_MS + (PIN_TICK_LAST_INTERVAL_MS - PIN_TICK_FIRST_INTERVAL_MS) * p).toLong()
+}
+
+/** [pinTickIntervalMs] as a step in pin progress. */
+private fun pinTickStep(progress: Float): Float =
+    pinTickIntervalMs(progress) / (GameConfig.PIN_DURATION_SECONDS * 1000f)
+
+private const val PIN_TICK_FIRST_INTERVAL_MS = 450f
+private const val PIN_TICK_LAST_INTERVAL_MS = 120f
 
 /**
  * Stats track single-player matches against the computer: true if the human (player 1) won

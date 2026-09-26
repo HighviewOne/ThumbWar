@@ -27,6 +27,14 @@ class CountdownSoundTest {
     }
 
     @Test
+    fun `pin tick interval shrinks from slow to fast as the pin fills`() {
+        assertEquals(450L, pinTickIntervalMs(0f))
+        assertEquals(120L, pinTickIntervalMs(1f))
+        assertEquals(285L, pinTickIntervalMs(0.5f))
+        assertEquals(120L, pinTickIntervalMs(1.5f)) // clamped
+    }
+
+    @Test
     fun `no sound when text is unchanged or cleared`() {
         assertNull(countdownSoundFor("3", "3"))
         assertNull(countdownSoundFor("I declare a thumb war!", ""))

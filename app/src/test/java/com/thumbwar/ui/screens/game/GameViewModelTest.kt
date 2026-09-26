@@ -11,6 +11,7 @@ import com.thumbwar.data.StatsRepository
 import com.thumbwar.engine.GameConfig
 import com.thumbwar.engine.GamePhase
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.Dispatchers
@@ -180,6 +181,23 @@ class GameViewModelTest {
 
         advance(1000) // loop keeps running in GAME_OVER; nothing more should be recorded
         assertEquals(listOf(state().winner == 1), results)
+    }
+
+    @Test
+    fun `a pin ticks faster and faster until it wins`() {
+        val tickTimes = mutableListOf<Long>()
+        every { soundManager.play(GameSound.PIN_TICK) } answers { tickTimes += dispatcher.scheduler.currentTime }
+        vm.initialize(isTwoPlayer = true, aiDifficulty = AiDifficulty.MEDIUM)
+        advanceToPlaying()
+
+        drivePlayer1OntoPlayer2()
+        advance(((GameConfig.PIN_DURATION_SECONDS + 1) * 1000).toLong())
+        assertEquals(GamePhase.GAME_OVER, state().phase)
+
+        assertTrue("Expected a run of ticks, got ${tickTimes.size}", tickTimes.size in 6..14)
+        val gaps = tickTimes.zipWithNext { a, b -> b - a }
+        assertTrue("Ticks should speed up: $gaps", gaps.last() < gaps.first() / 2)
+        verify(exactly = tickTimes.size) { soundManager.vibrate(15) }
     }
 
     @Test
