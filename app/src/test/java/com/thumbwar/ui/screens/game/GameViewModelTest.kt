@@ -237,4 +237,39 @@ class GameViewModelTest {
         advance(500)
         assertTrue("Thumb should not chase a stale finger", state().thumb1.position.y <= before.y + 0.01f)
     }
+
+    @Test
+    fun `a round started while paused waits for resume`() {
+        vm.initialize(isTwoPlayer = true, aiDifficulty = AiDifficulty.MEDIUM, winsNeeded = 2)
+        advanceToPlaying()
+        drivePlayer1OntoPlayer2()
+        advance(((GameConfig.PIN_DURATION_SECONDS + 1) * 1000).toLong())
+        assertEquals(GamePhase.GAME_OVER, state().phase)
+
+        // App goes to the background while the round banner shows; the banner's timer still fires
+        vm.pause()
+        vm.startNextRound()
+        advance(10_000)
+        assertEquals("Round 2 must not play while backgrounded", GamePhase.COUNTDOWN, state().phase)
+        assertEquals("", state().countdownText)
+
+        vm.resume()
+        advanceToPlaying()
+        assertEquals(2, state().roundNumber)
+    }
+
+    @Test
+    fun `initializing again keeps the match in progress`() {
+        vm.initialize(isTwoPlayer = true, aiDifficulty = AiDifficulty.MEDIUM, winsNeeded = 2)
+        advanceToPlaying()
+        drivePlayer1OntoPlayer2()
+        advance(((GameConfig.PIN_DURATION_SECONDS + 1) * 1000).toLong())
+        assertEquals(1, state().p1RoundWins)
+
+        // What the screen does after the activity is recreated (dark mode, font size, split-screen)
+        vm.initialize(isTwoPlayer = true, aiDifficulty = AiDifficulty.MEDIUM, winsNeeded = 2)
+        advance(100)
+        assertEquals(1, state().p1RoundWins)
+        assertEquals(GamePhase.GAME_OVER, state().phase)
+    }
 }

@@ -50,6 +50,10 @@ class GameViewModel(
     private var winsNeeded = 1
     private var arenaWidth = 0f
     private var arenaHeight = 0f
+    private var initialized = false
+
+    // While the app is in the background nothing may advance the game; resume() restarts the loop
+    private var isPaused = false
 
     init {
         viewModelScope.launch { soundEnabled.collect { soundManager.setSoundEnabled(it) } }
@@ -57,6 +61,10 @@ class GameViewModel(
     }
 
     fun initialize(isTwoPlayer: Boolean, aiDifficulty: AiDifficulty, winsNeeded: Int = 1) {
+        // The screen calls this on every composition, including after the activity is recreated
+        // (dark mode, font size, split-screen). The match lives here, so only set it up once.
+        if (initialized) return
+        initialized = true
         this.isTwoPlayer = isTwoPlayer
         this.winsNeeded = winsNeeded
         engine = newEngine()
@@ -88,6 +96,7 @@ class GameViewModel(
 
     private fun startGameLoop() {
         gameLoopJob?.cancel()
+        if (isPaused) return
         gameLoopJob = viewModelScope.launch {
             var lastTime = clock()
             while (isActive) {
@@ -200,6 +209,7 @@ class GameViewModel(
     }
 
     fun pause() {
+        isPaused = true
         gameLoopJob?.cancel()
         // Fingers on screen when the app is backgrounded won't send their lift; let go of them
         inputManager?.reset()
@@ -208,6 +218,7 @@ class GameViewModel(
     }
 
     fun resume() {
+        isPaused = false
         if (_gameState.value.phase != GamePhase.GAME_OVER) {
             startGameLoop()
         }

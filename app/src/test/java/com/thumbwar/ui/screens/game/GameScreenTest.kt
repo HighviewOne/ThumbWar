@@ -4,6 +4,7 @@ import android.os.Looper
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.testTag
@@ -12,6 +13,7 @@ import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.thumbwar.ai.AiDifficulty
 import com.thumbwar.data.StatsRepository
@@ -51,19 +53,24 @@ class GameScreenTest {
     private var gameOver: Triple<Int, Int, Int>? = null
     private var backPressed = false
 
+    /** Toggling this removes and re-adds GameScreen, like the activity being recreated. */
+    private val onScreen = mutableStateOf(true)
+
     private fun show(isTwoPlayer: Boolean, winsNeeded: Int) {
         composeTestRule.mainClock.autoAdvance = false
         composeTestRule.setContent {
             ThumbWarTheme {
                 Box(Modifier.size(400.dp).testTag("game")) {
-                    GameScreen(
-                        isTwoPlayer = isTwoPlayer,
-                        aiDifficulty = AiDifficulty.EASY,
-                        winsNeeded = winsNeeded,
-                        onGameOver = { winner, p1, p2 -> gameOver = Triple(winner, p1, p2) },
-                        onBack = { backPressed = true },
-                        viewModel = vm
-                    )
+                    if (onScreen.value) {
+                        GameScreen(
+                            isTwoPlayer = isTwoPlayer,
+                            aiDifficulty = AiDifficulty.EASY,
+                            winsNeeded = winsNeeded,
+                            onGameOver = { winner, p1, p2 -> gameOver = Triple(winner, p1, p2) },
+                            onBack = { backPressed = true },
+                            viewModel = vm
+                        )
+                    }
                 }
             }
         }
@@ -184,5 +191,38 @@ class GameScreenTest {
         show(isTwoPlayer = false, winsNeeded = 1)
         composeTestRule.runOnUiThread { composeTestRule.activity.onBackPressedDispatcher.onBackPressed() }
         assertTrue(backPressed)
+    }
+
+    @Test
+    fun backgroundedDuringRoundBanner_nextRoundWaitsForTheReturn() {
+        show(isTwoPlayer = true, winsNeeded = 2)
+        advanceToPlaying()
+        pinPlayer2WithPlayer1()
+        composeTestRule.onNodeWithText("Player 1 wins the round!").assertExists()
+
+        composeTestRule.activityRule.scenario.moveToState(Lifecycle.State.CREATED)
+        advance(8_000)
+        assertEquals("Round 2 must not play in the background", GamePhase.COUNTDOWN, state().phase)
+        assertEquals(0, state().p2RoundWins)
+
+        composeTestRule.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        advanceToPlaying()
+        assertEquals(2, state().roundNumber)
+    }
+
+    @Test
+    fun screenRebuiltMidMatch_keepsTheScore() {
+        show(isTwoPlayer = true, winsNeeded = 2)
+        advanceToPlaying()
+        pinPlayer2WithPlayer1()
+        assertEquals(1, state().p1RoundWins)
+
+        onScreen.value = false
+        advance(100)
+        onScreen.value = true
+        advance(100)
+
+        assertEquals(1, state().p1RoundWins)
+        assertEquals(1, state().roundNumber)
     }
 }

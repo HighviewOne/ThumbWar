@@ -115,4 +115,21 @@ class CanvasRenderingTest {
         composeTestRule.setContent { ThumbWarTheme { CountdownOverlay(text = "3") } }
         composeTestRule.onNodeWithText("3").assertExists()
     }
+
+    @Test
+    fun countdownOverlay_numberIsVisibleWhileItPopsIn() {
+        composeTestRule.mainClock.autoAdvance = false
+        composeTestRule.setContent { ThumbWarTheme { CountdownOverlay(text = "3") } }
+        composeTestRule.mainClock.advanceTimeBy(100) // mid-animation: still scaling down
+
+        val bitmap = renderToBitmap()
+        val glowPixels = (0 until bitmap.width step 2).sumOf { x ->
+            (0 until bitmap.height step 2).count { y ->
+                // Yellow glow, possibly half faded in over the dark background
+                val c = Color(bitmap.getPixel(x, y))
+                c.red > 0.4f && c.green > 0.35f && c.blue < 0.3f
+            }
+        }
+        assertTrue("The number should already be visible during its pop-in, found $glowPixels glow pixels", glowPixels > 50)
+    }
 }

@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.thumbwar.ui.theme.CountdownGlow
 import com.thumbwar.ui.theme.CountdownWhite
+import kotlinx.coroutines.launch
 
 @Composable
 fun CountdownOverlay(text: String) {
@@ -23,8 +24,9 @@ fun CountdownOverlay(text: String) {
     val alphaAnim = remember(text) { Animatable(0f) }
 
     LaunchedEffect(text) {
-        scale.animateTo(1f, animationSpec = tween(250, easing = FastOutSlowInEasing))
-        alphaAnim.animateTo(1f, animationSpec = tween(200))
+        // Shrink and fade in together, so the pop is visible rather than happening while transparent
+        launch { scale.animateTo(1f, animationSpec = tween(250, easing = FastOutSlowInEasing)) }
+        launch { alphaAnim.animateTo(1f, animationSpec = tween(200)) }
     }
 
     Box(
