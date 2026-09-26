@@ -29,8 +29,6 @@ class GameEngine(private val winsNeeded: Int = 1) {
 
     private var pinProgress: Float = 0f
     private var pinnerPlayer: Int = 0
-    private var p1Score: Int = 0
-    private var p2Score: Int = 0
     private var winner: Int = 0
     private var elapsedTimeMs: Long = 0
     private var roundNumber: Int = 1
@@ -130,7 +128,7 @@ class GameEngine(private val winsNeeded: Int = 1) {
         if (pinProgress >= 1f) {
             pinProgress = 1f
             // Pin complete — pinner wins the round
-            if (pinnerPlayer == 1) { p1Score++; p1RoundWins++ } else { p2Score++; p2RoundWins++ }
+            if (pinnerPlayer == 1) p1RoundWins++ else p2RoundWins++
             winner = pinnerPlayer
             isMatchOver = (if (pinnerPlayer == 1) p1RoundWins else p2RoundWins) >= winsNeeded
             phaseManager.gameOver()
@@ -180,8 +178,6 @@ class GameEngine(private val winsNeeded: Int = 1) {
         pinnerPlayer = pinnerPlayer,
         countdownBeat = phaseManager.countdownBeat,
         countdownText = phaseManager.countdownText,
-        p1Score = p1Score,
-        p2Score = p2Score,
         winner = winner,
         elapsedTimeMs = elapsedTimeMs,
         roundNumber = roundNumber,

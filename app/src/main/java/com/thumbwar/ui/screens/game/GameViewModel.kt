@@ -136,8 +136,14 @@ class GameViewModel(
                     soundManager.vibrate(100)
                 }
                 GamePhase.GAME_OVER -> {
-                    soundManager.play(GameSound.VICTORY_FANFARE)
-                    soundManager.vibratePattern(longArrayOf(0, 100, 50, 100, 50, 200))
+                    // Fanfare only for winning the match; a round win in best-of-3 gets the pin cue
+                    if (state.isMatchOver) {
+                        soundManager.play(GameSound.VICTORY_FANFARE)
+                        soundManager.vibratePattern(longArrayOf(0, 100, 50, 100, 50, 200))
+                    } else {
+                        soundManager.play(GameSound.PIN_COMPLETE)
+                        soundManager.vibrate(150)
+                    }
                     recordMatchResult(state)
                 }
                 else -> {}
@@ -185,6 +191,7 @@ class GameViewModel(
 
     fun startNextRound() {
         engine.nextRound()
+        aiController?.reset()
         engine.startGame()
         lastPhase = GamePhase.READY
         lastCountdownText = ""
@@ -194,6 +201,10 @@ class GameViewModel(
 
     fun pause() {
         gameLoopJob?.cancel()
+        // Fingers on screen when the app is backgrounded won't send their lift; let go of them
+        inputManager?.reset()
+        engine.releasePlayer1()
+        if (isTwoPlayer) engine.releasePlayer2()
     }
 
     fun resume() {

@@ -16,7 +16,8 @@ fun ScoreDisplay(
     p1Score: Int,
     p2Score: Int,
     roundNumber: Int = 1,
-    winsNeeded: Int = 1
+    winsNeeded: Int = 1,
+    showRound: Boolean = true
 ) {
     Box(
         modifier = Modifier
@@ -42,7 +43,7 @@ fun ScoreDisplay(
             }
 
             // Round indicator (only for best-of-3)
-            if (winsNeeded > 1) {
+            if (winsNeeded > 1 && showRound) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Round $roundNumber",

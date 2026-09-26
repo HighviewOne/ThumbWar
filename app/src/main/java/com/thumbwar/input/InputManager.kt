@@ -5,8 +5,10 @@ import com.thumbwar.util.Vector2
 class InputManager(
     private val isTwoPlayer: Boolean
 ) {
-    // Maps pointer IDs to player numbers
-    private val pointerToPlayer = mutableMapOf<Long, Int>()
+    private class TrackedPointer(val player: Int, var position: Vector2)
+
+    // Fingers currently down, by pointer ID, in the order they were pressed
+    private val pointers = linkedMapOf<Long, TrackedPointer>()
 
     /**
      * Handles one pointer from a touch event. A single event lists every finger on the screen,
@@ -40,23 +42,26 @@ class InputManager(
             1 // Single player: all touch is P1
         }
 
-        pointerToPlayer[pointerId] = player
+        pointers[pointerId] = TrackedPointer(player, position)
         return InputEvent.Move(player, position)
     }
 
     fun processPointerMove(pointerId: Long, x: Float, y: Float, canvasWidth: Float, canvasHeight: Float): InputEvent? {
-        val player = pointerToPlayer[pointerId] ?: return null
+        val pointer = pointers[pointerId] ?: return null
         val normalizedX = (x / canvasWidth).coerceIn(0f, 1f)
         val normalizedY = (y / canvasHeight).coerceIn(0f, 1f)
-        return InputEvent.Move(player, Vector2(normalizedX, normalizedY))
+        pointer.position = Vector2(normalizedX, normalizedY)
+        return InputEvent.Move(pointer.player, pointer.position)
     }
 
     fun processPointerUp(pointerId: Long): InputEvent? {
-        val player = pointerToPlayer.remove(pointerId) ?: return null
-        return InputEvent.Release(player)
+        val player = pointers.remove(pointerId)?.player ?: return null
+        // If the player still has another finger down, that finger takes over instead of letting go
+        val remaining = pointers.values.lastOrNull { it.player == player }
+        return if (remaining != null) InputEvent.Move(player, remaining.position) else InputEvent.Release(player)
     }
 
     fun reset() {
-        pointerToPlayer.clear()
+        pointers.clear()
     }
 }

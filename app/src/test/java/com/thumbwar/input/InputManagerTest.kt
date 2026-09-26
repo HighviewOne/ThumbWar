@@ -102,4 +102,24 @@ class InputManagerTest {
         input.reset()
         assertNull(input.held(1, 200f))
     }
+
+    @Test
+    fun `lifting one of a player's two fingers hands control to the other`() {
+        val input = InputManager(isTwoPlayer = true)
+        input.down(1, 100f, 100f)
+        input.down(2, 300f, 400f)
+
+        // First finger lifts: the thumb follows the finger still down, rather than letting go
+        assertEquals(InputEvent.Move(1, Vector2(0.3f, 0.8f)), input.up(1, 100f, 100f))
+        // Last finger lifts: now the player lets go
+        assertEquals(InputEvent.Release(1), input.up(2, 300f, 400f))
+    }
+
+    @Test
+    fun `the other player's finger does not count as a remaining finger`() {
+        val input = InputManager(isTwoPlayer = true)
+        input.down(1, 100f)
+        input.down(2, 900f)
+        assertEquals(InputEvent.Release(1), input.up(1, 100f))
+    }
 }

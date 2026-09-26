@@ -10,7 +10,7 @@
         android:label="Thumb War"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        android:theme="@style/Theme.ThumbWar">
         <activity
             android:name=".MainActivity"
             android:exported="true"

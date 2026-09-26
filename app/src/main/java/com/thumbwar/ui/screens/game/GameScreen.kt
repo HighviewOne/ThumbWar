@@ -115,7 +115,9 @@ fun GameScreen(
             p1Score = gameState.p1RoundWins,
             p2Score = gameState.p2RoundWins,
             roundNumber = gameState.roundNumber,
-            winsNeeded = gameState.winsNeeded
+            winsNeeded = gameState.winsNeeded,
+            // The pin label takes the same top-center spot
+            showRound = gameState.phase != GamePhase.PIN_IN_PROGRESS
         )
 
         // Countdown overlay

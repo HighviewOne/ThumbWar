@@ -42,6 +42,14 @@ class AiController(
         }
     }
 
+    /** Forgets targets and timers from the previous round. */
+    fun reset() {
+        timeSinceLastDecision = 0L
+        currentTarget = null
+        aiState = AiState.IDLE
+        restTimer = 0L
+    }
+
     fun update(state: GameState, deltaMs: Long): Vector2? {
         timeSinceLastDecision += deltaMs
 

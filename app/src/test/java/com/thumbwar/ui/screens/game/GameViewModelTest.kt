@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.thumbwar.ai.AiDifficulty
+import com.thumbwar.audio.GameSound
 import com.thumbwar.audio.SoundManager
 import com.thumbwar.data.StatsRepository
 import com.thumbwar.engine.GameConfig
@@ -151,6 +152,9 @@ class GameViewModelTest {
         assertEquals(GamePhase.GAME_OVER, state().phase)
         assertEquals(1, state().winner)
         assertEquals(false, state().isMatchOver)
+        // A round win gets the pin cue; the fanfare is saved for winning the match
+        verify { soundManager.play(GameSound.PIN_COMPLETE) }
+        verify(exactly = 0) { soundManager.play(GameSound.VICTORY_FANFARE) }
 
         vm.startNextRound()
         advance(100)
@@ -187,6 +191,7 @@ class GameViewModelTest {
 
         assertTrue(state().isMatchOver)
         assertEquals(emptyList<Boolean>(), results)
+        verify { soundManager.play(GameSound.VICTORY_FANFARE) }
     }
 
     @Test
@@ -215,5 +220,21 @@ class GameViewModelTest {
         vm.resume()
         advance(5000)
         assertEquals(GamePhase.PLAYING, state().phase)
+    }
+
+    @Test
+    fun `pause lets go of fingers that were on screen`() {
+        vm.initialize(isTwoPlayer = false, aiDifficulty = AiDifficulty.EASY)
+        advanceToPlaying()
+        val finger = press(0.3f, 0.1f)
+        advance(100)
+
+        vm.pause()
+        vm.resume()
+        // The old finger's lift never arrives; later events from it must not drive the thumb
+        drag(finger, 0.3f, 0.9f)
+        val before = state().thumb1.position
+        advance(500)
+        assertTrue("Thumb should not chase a stale finger", state().thumb1.position.y <= before.y + 0.01f)
     }
 }

@@ -29,8 +29,6 @@ data class GameState(
     val pinnerPlayer: Int = 0, // 0 = none, 1 or 2
     val countdownBeat: Int = 0, // 0..4, where 0 = not started
     val countdownText: String = "",
-    val p1Score: Int = 0,
-    val p2Score: Int = 0,
     val winner: Int = 0, // 0 = no winner yet
     val elapsedTimeMs: Long = 0,
     val roundNumber: Int = 1,

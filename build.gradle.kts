@@ -5,7 +5,7 @@ plugins {
 }
 
 detekt {
-    autoCorrect = true
+    autoCorrect = false // report only; CI must not rewrite sources
     buildUponDefaultConfig = true
     config.setFrom(files("$rootDir/detekt.yml"))
 }

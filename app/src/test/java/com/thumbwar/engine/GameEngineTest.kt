@@ -157,7 +157,7 @@ class GameEngineTest {
         }
 
         val state = engine.getState()
-        assertTrue("Total score should be 1", state.p1Score + state.p2Score == 1)
+        assertTrue("Total score should be 1", state.p1RoundWins + state.p2RoundWins == 1)
     }
 
     @Test

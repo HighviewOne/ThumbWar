@@ -94,4 +94,12 @@ class ScreensTest {
         setLandscapeContent { GameOverScreen(winner = 1, p1Score = 2, p2Score = 1, winsNeeded = 2, onRematch = {}, onMainMenu = {}) }
         composeTestRule.onNodeWithText("MAIN MENU").performScrollTo().assertIsDisplayed()
     }
+
+    @Test
+    fun scoreDisplay_hidesRoundWhileAPinLabelNeedsTheSpace() {
+        composeTestRule.setContent {
+            ThumbWarTheme { ScoreDisplay(p1Score = 1, p2Score = 0, roundNumber = 2, winsNeeded = 2, showRound = false) }
+        }
+        composeTestRule.onNodeWithText("Round 2").assertDoesNotExist()
+    }
 }

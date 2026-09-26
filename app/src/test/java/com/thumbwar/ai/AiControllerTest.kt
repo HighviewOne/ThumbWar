@@ -111,6 +111,16 @@ class AiControllerTest {
         assertTrue("Hard AI should produce targets", hardTargets.isNotEmpty())
     }
 
+    @Test
+    fun `reset clears the previous round's target`() {
+        val ai = AiController(AiDifficulty.HARD, Random(SEED))
+        val state = makeGameState()
+        repeat(5) { ai.update(state, 100) }
+
+        ai.reset()
+        assertNull("No target right after reset, before the reaction delay", ai.update(state, 10))
+    }
+
     private companion object {
         const val SEED = 42
     }
