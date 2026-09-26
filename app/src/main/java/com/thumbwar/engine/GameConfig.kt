@@ -27,10 +27,10 @@ object GameConfig {
     const val ARENA_MAX_Y = 0.95f
 
     // Starting positions
-    val PLAYER1_START_X = 0.3f
-    val PLAYER1_START_Y = 0.5f
-    val PLAYER2_START_X = 0.7f
-    val PLAYER2_START_Y = 0.5f
+    const val PLAYER1_START_X = 0.3f
+    const val PLAYER1_START_Y = 0.5f
+    const val PLAYER2_START_X = 0.7f
+    const val PLAYER2_START_Y = 0.5f
 
     // Game tick rate
     const val TICK_RATE_MS = 16L // ~60fps

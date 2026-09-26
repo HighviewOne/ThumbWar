@@ -23,7 +23,9 @@ class SoundManager(private val context: Context) {
         }
     }
 
-    // Using ToneGenerator for simple sound effects without requiring audio assets
+    // Using ToneGenerator for simple sound effects without requiring audio assets.
+    // Some devices throw from its constructor (no audio resources); the game then plays silently.
+    @Suppress("TooGenericExceptionCaught", "SwallowedException")
     private val toneGenerator: ToneGenerator? by lazy {
         try {
             ToneGenerator(AudioManager.STREAM_MUSIC, 80)

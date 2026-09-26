@@ -35,6 +35,7 @@ object ThumbCanvas {
         nail = Color(0xFFC4956A)
     )
 
+    @Suppress("LongMethod") // one drawing pass, read top to bottom: shadow, skin, nail, squish lines
     fun DrawScope.drawThumb(
         state: ThumbState,
         canvasSize: Size,

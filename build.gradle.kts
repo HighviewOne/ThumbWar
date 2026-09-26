@@ -8,4 +8,6 @@ detekt {
     autoCorrect = false // report only; CI must not rewrite sources
     buildUponDefaultConfig = true
     config.setFrom(files("$rootDir/detekt.yml"))
+    // The plugin is applied here at the root, whose default source dirs don't exist
+    source.setFrom(files("app/src/main/java", "app/src/test/java"))
 }
