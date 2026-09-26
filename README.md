@@ -7,6 +7,7 @@
 **A digital thumb wrestling game for Android.** Pin your opponent's thumb and hold it for 2.5 seconds to win.
 
 [![Build](https://img.shields.io/github/actions/workflow/status/HighviewOne/ThumbWar/ci-cd.yml?branch=main&style=flat-square&logo=github&label=build)](https://github.com/HighviewOne/ThumbWar/actions/workflows/ci-cd.yml)
+[![Coverage](https://img.shields.io/codecov/c/github/HighviewOne/ThumbWar/main?style=flat-square&logo=codecov&logoColor=white)](https://app.codecov.io/gh/HighviewOne/ThumbWar)
 [![Latest release](https://img.shields.io/github/v/release/HighviewOne/ThumbWar?style=flat-square&color=fbbf24)](https://github.com/HighviewOne/ThumbWar/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/HighviewOne/ThumbWar/total?style=flat-square&color=10b981)](https://github.com/HighviewOne/ThumbWar/releases)
 [![Platform](https://img.shields.io/badge/platform-Android%208.0%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](#)
