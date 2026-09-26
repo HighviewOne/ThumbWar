@@ -13,7 +13,7 @@ Thank you for your interest in contributing to ThumbWar! This guide will help yo
 ### Local Setup
 1. Clone the repository
    ```bash
-   git clone https://github.com/yourusername/ThumbWar.git
+   git clone https://github.com/HighviewOne/ThumbWar.git
    cd ThumbWar
    ```
 
@@ -81,9 +81,9 @@ Short summary (50 chars max)
 
 More detailed explanation if needed, wrapped at 72 characters.
 Explain *what* changed and *why*, not *how*.
-
-Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 ```
+
+Prefixes used in this repo: `fix:`, `feat:`, `test:`, `docs:`, `ci:`, `build:`, `chore:`.
 
 ## Testing
 
@@ -92,29 +92,42 @@ Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
 # Run unit tests
 ./gradlew testDebugUnitTest
 
-# Run instrumentation tests (requires device/emulator)
-./gradlew connectedAndroidTest
+# Run instrumentation tests (requires a device or emulator)
+./gradlew connectedDebugAndroidTest
 
-# Generate coverage report
+# Generate coverage report (app/build/reports/jacoco/jacocoTestReport/html)
 ./gradlew jacocoTestReport
 ```
 
+Instrumentation tests install a debug build, which is signed with a different key than the
+releases. If a release build of Thumb War is on the device, uninstall it first.
+
 ### Writing Tests
-- Place unit tests in `app/src/test/java/`
-- Place instrumentation tests in `app/src/androidTest/java/`
-- Aim for 70%+ code coverage
-- Use descriptive test names: `testX_whenY_thenZ()`
-- Mock external dependencies with MockK
+- **Unit tests** go in `app/src/test/java/` and run on the JVM in CI. This includes UI tests:
+  Compose screens and Android APIs run under **Robolectric** (see `AppFlowTest`,
+  `GameScreenTest`, `CanvasRenderingTest`), so prefer them over device tests.
+- **Instrumentation tests** go in `app/src/androidTest/java/` for things that need real hardware.
+- **Keep tests deterministic.** Pass a seeded `Random` to `AiController`/`GameViewModel`, and a
+  fake clock to `GameViewModel` (`GameViewModelTest` runs the game loop in virtual time;
+  `GameScreenTest` shows how to drive the loop and Compose's clock together under Robolectric).
+- Name tests by behavior, e.g. `` `pinned player escapes by dragging away` ``.
+- Mock external dependencies with MockK; repositories take a `DataStore`, so tests can use a
+  real one backed by a temp file (see `RepositoriesTest`).
+- Keep coverage where it is (about 90% on Codecov); the badge in the README tracks it.
 
 Example unit test:
 ```kotlin
-class ThumbWarTest {
+class CollisionDetectorTest {
     @Test
-    fun collisionDetector_detectsOverlap_whenThumbsTouch() {
-        val thumb1 = ThumbEntity(1, Vector2(100f, 100f), 30f)
-        val thumb2 = ThumbEntity(2, Vector2(120f, 100f), 30f)
-        
-        assertTrue(CollisionDetector.detectOverlap(thumb1, thumb2))
+    fun `pin detected when thumbs overlap`() {
+        val thumb1 = ThumbEntity(0.5f, 0.5f)
+        val thumb2 = ThumbEntity(0.5f + GameConfig.THUMB_RADIUS, 0.5f)
+        thumb1.setTarget(Vector2(0.8f, 0.5f))
+        thumb1.update(0.016f) // moving toward thumb2 makes thumb1 the pinner
+
+        val result = CollisionDetector().checkPin(thumb1, thumb2)
+        assertTrue(result.isPinning)
+        assertEquals(1, result.pinnerPlayer)
     }
 }
 ```
@@ -122,10 +135,11 @@ class ThumbWarTest {
 ## Documentation
 
 ### When to Update Documentation
-- Adding new features → Update ARCHITECTURE.md
-- Changing game mechanics → Update ARCHITECTURE.md
-- Adding new screen → Update README.md
-- Changing setup process → Update CONTRIBUTING.md
+- Changing structure or components → Update ARCHITECTURE.md
+- Changing rules, constants or AI behavior → Update GAME_MECHANICS.md
+- Adding a feature or screen → Update README.md
+- Changing accessibility → Update ACCESSIBILITY.md
+- Changing setup, testing or release steps → Update CONTRIBUTING.md
 
 ### Documentation Standards
 - Use clear, concise language
@@ -160,6 +174,26 @@ class ThumbWarTest {
 
 ### Merging
 Once approved and all checks pass, your PR will be merged to the main branch.
+
+## Releasing (maintainers)
+
+Release APKs are built and signed locally; CI doesn't build releases.
+
+1. Make sure `main` has a user-facing change since the last release and CI is green.
+2. Bump `versionCode` (+1) and `versionName` in `app/build.gradle.kts`.
+3. `./gradlew clean ktlintCheck detekt testDebugUnitTest assembleRelease`. Signing uses
+   `release.keystore` and the passwords in `local.properties`, both git-ignored.
+4. Check the APK is signed with the release key, the same one as every earlier release, or
+   existing installs can't update:
+   `apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk`
+5. Install it over the previous release on a device (`adb install -r`) and smoke-test it.
+6. Commit the bump (`chore: bump to vX.Y.Z`), tag `vX.Y.Z`, and push both.
+7. `gh release create vX.Y.Z app/build/outputs/apk/release/app-release.apk --title vX.Y.Z`
+   with player-facing notes. Keep the asset named **`app-release.apk`**: the README and website
+   Download buttons link to `releases/latest/download/app-release.apk`.
+
+Keep a backup of `release.keystore` and its passwords somewhere safe. If they're lost, no
+future release can install over existing copies.
 
 ## Project Structure
 
@@ -204,6 +238,6 @@ By contributing, you agree that your contributions will be licensed under the sa
 
 ## Recognition
 
-Contributors will be recognized in the project README and commit history.
+Contributors are credited in the commit history and release notes.
 
 Thank you for helping make ThumbWar better! 🎮
