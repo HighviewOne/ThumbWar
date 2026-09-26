@@ -42,20 +42,24 @@ We enforce code quality through automated checks. All contributions must pass:
 # Check code with Detekt
 ./gradlew detekt
 
-# Run all checks
-./gradlew build
+# Run everything CI runs (the release build needs the signing key, so it's not included)
+./gradlew ktlintCheck detekt lintDebug testDebugUnitTest
 ```
+
+On a machine with little RAM, run the tasks one at a time and add
+`-Pkotlin.compiler.execution.strategy=in-process` so the Kotlin compiler doesn't start its own
+daemon; Robolectric UI tests plus Android Lint can use several GB together.
 
 ### Code Style Guidelines
 - Use Kotlin conventions (PascalCase for classes, camelCase for variables)
-- Maximum line length: 120 characters
+- Maximum line length: 140 characters (ktlint's default; detekt enforces it too)
 - Use meaningful variable names
 - Add KDoc comments to public APIs
 - Follow the project structure - don't create new top-level packages
 
 ### Before Committing
 1. Run `./gradlew ktlintFormat` to auto-format
-2. Run `./gradlew detekt` and fix any issues
+2. Run `./gradlew detekt lintDebug` and fix any issues (Android Lint errors fail CI; warnings don't)
 3. Run `./gradlew testDebugUnitTest` to run tests
 4. Ensure your changes don't break existing tests
 

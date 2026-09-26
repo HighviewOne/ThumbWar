@@ -30,10 +30,11 @@
 | 👥 **Two Players** | Same device, landscape mode, one thumb each |
 | 🎬 **Countdown** | "1, 2, 3, 4, I declare a thumb war!" |
 | 🏆 **Best of 3** | Choose single round or best-of-3 before each game |
-| 🎯 **Pin Mechanics** | Overlap and hold for 2.5s; ring fills yellow → red |
+| 🎯 **Pin Mechanics** | Overlap and hold for 2.5s; ring fills yellow → red with a quickening tick. The pinned thumb can still break free |
 | 🔊 **Sound & Haptics** | Toggleable audio and vibration feedback |
 | 📊 **Stats Tracking** | Wins, losses, and streaks vs the computer, saved across sessions |
 | ⚙️ **Settings** | Sound, vibration, default difficulty |
+| ⏸️ **Quit Safely** | Back mid-match pauses and asks before quitting |
 
 ## How to Play
 
@@ -68,13 +69,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development setup.
 
 - **Detekt** — Kotlin linting and static analysis
 - **ktlint** — Code formatting and style
+- **Android Lint** — Android-specific checks; errors fail CI
 - **Unit Tests** — engine, AI, input and ViewModel, plus UI flows under Robolectric (~90% coverage, see badge)
 - **Instrumentation Tests** — Compose UI tests on a device
 - **R8** — Release-build shrinking and obfuscation
 - **CI/CD** — Automated testing and building via GitHub Actions
 
 ```bash
-./gradlew detekt ktlintCheck testDebugUnitTest jacocoTestReport
+./gradlew detekt ktlintCheck lintDebug testDebugUnitTest jacocoTestReport
 ```
 
 ## Tech Stack
