@@ -30,6 +30,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows.shadowOf
 import java.time.Duration
+import kotlin.random.Random
 
 /**
  * Plays real games through GameScreen's touch handling. The game loop runs on the main looper
@@ -49,7 +50,8 @@ class GameScreenTest {
         soundEnabled = flowOf(true),
         vibrationEnabled = flowOf(true),
         statsRepository = mockk<StatsRepository>(relaxed = true),
-        clock = { now }
+        clock = { now },
+        aiRandom = Random(42) // same computer moves every run
     )
     private var gameOver: Triple<Int, Int, Int>? = null
     private var backPressed = false
@@ -119,7 +121,9 @@ class GameScreenTest {
         advance(GameConfig.COUNTDOWN_BEAT_DURATION_MS * GameConfig.COUNTDOWN_BEATS)
         assertEquals("I declare a thumb war!", state().countdownText)
         composeTestRule.onNodeWithText("I declare a thumb war!").assertExists()
-        advanceToPlaying()
+        // Only the rest of the countdown: going further gives the computer time to pin the idle thumb
+        advance(GameConfig.COUNTDOWN_DECLARE_DURATION_MS + 100)
+        assertEquals(GamePhase.PLAYING, state().phase)
     }
 
     @Test
