@@ -125,9 +125,11 @@ Tests that involve randomness use a seeded `Random`; tests that involve time use
 - **Release** (`./gradlew assembleRelease`) is shrunk with R8 and signed with `release.keystore`
   using credentials from `local.properties`; both are git-ignored and exist only locally. Every
   update must be signed with the same key, so keep a backup of both.
-- **CI** (GitHub Actions, `.github/workflows/ci-cd.yml`): ktlint, detekt, debug build, unit tests,
-  coverage upload to Codecov (authenticated with GitHub OIDC, no stored token), Android Lint,
-  and a Trivy config scan.
+- **CI** (GitHub Actions, `.github/workflows/ci-cd.yml`): Gradle wrapper validation, ktlint,
+  detekt, debug build, unit tests, coverage upload to Codecov (authenticated with GitHub OIDC, no
+  stored token), Android Lint, and a Trivy config scan. ktlint, detekt, the tests and Android Lint
+  errors all fail the build; lint warnings don't. `detekt.yml` lists only the deliberate
+  differences from detekt's defaults, each with its reason.
 
 ## Future Improvements
 

@@ -164,7 +164,7 @@ class CollisionDetectorTest {
    - ✅ Code quality (Detekt, ktlint)
    - ✅ Unit tests
    - ✅ Code coverage
-   - ✅ Lint checks
+   - ✅ Android Lint (errors fail the build; warnings are reported only)
 
 ### Code Review
 - Be responsive to review feedback
