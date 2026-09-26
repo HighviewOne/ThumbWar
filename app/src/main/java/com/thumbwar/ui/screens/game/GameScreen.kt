@@ -32,6 +32,7 @@ fun GameScreen(
     viewModel: GameViewModel = viewModel(factory = GameViewModel.Factory)
 ) {
     val gameState by viewModel.gameState.collectAsState()
+    val quitPromptVisible by viewModel.quitPromptVisible.collectAsState()
 
     // Force landscape for two-player mode
     val context = LocalContext.current
@@ -45,8 +46,21 @@ fun GameScreen(
         }
     }
 
-    // Back button handling
-    BackHandler { onBack() }
+    // Back mid-match asks first, so a stray swipe doesn't throw the match away
+    BackHandler {
+        if (gameState.isMatchOver) onBack() else viewModel.requestQuit()
+    }
+
+    if (quitPromptVisible) {
+        QuitMatchDialog(
+            countsAsLoss = viewModel.quitCountsAsLoss(),
+            onQuit = {
+                viewModel.confirmQuit()
+                onBack()
+            },
+            onKeepPlaying = { viewModel.cancelQuit() }
+        )
+    }
 
     // Lifecycle — pause on background
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -147,4 +161,25 @@ fun GameScreen(
             }
         }
     }
+}
+
+@Composable
+private fun QuitMatchDialog(
+    countsAsLoss: Boolean,
+    onQuit: () -> Unit,
+    onKeepPlaying: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onKeepPlaying,
+        title = { Text("Quit match?") },
+        text = {
+            Text(if (countsAsLoss) "Quitting now counts as a loss." else "This match will end.")
+        },
+        confirmButton = {
+            TextButton(onClick = onQuit) { Text("Quit") }
+        },
+        dismissButton = {
+            TextButton(onClick = onKeepPlaying) { Text("Keep Playing") }
+        }
+    )
 }

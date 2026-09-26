@@ -259,6 +259,60 @@ class GameViewModelTest {
     }
 
     @Test
+    fun `quitting a single player match once play has begun records a loss`() {
+        vm.initialize(isTwoPlayer = false, aiDifficulty = AiDifficulty.EASY)
+        advanceToPlaying()
+
+        vm.requestQuit()
+        assertTrue(vm.quitCountsAsLoss())
+        vm.confirmQuit()
+        advance(100)
+        assertEquals(listOf(false), results)
+    }
+
+    @Test
+    fun `quitting during the opening countdown records nothing`() {
+        vm.initialize(isTwoPlayer = false, aiDifficulty = AiDifficulty.EASY)
+        advance(1000)
+        assertEquals(GamePhase.COUNTDOWN, state().phase)
+
+        vm.requestQuit()
+        vm.confirmQuit()
+        advance(100)
+        assertEquals(emptyList<Boolean>(), results)
+    }
+
+    @Test
+    fun `quitting a two player match records nothing`() {
+        vm.initialize(isTwoPlayer = true, aiDifficulty = AiDifficulty.MEDIUM)
+        advanceToPlaying()
+
+        vm.requestQuit()
+        vm.confirmQuit()
+        advance(100)
+        assertEquals(emptyList<Boolean>(), results)
+    }
+
+    @Test
+    fun `quit prompt freezes the game, keep playing resumes it`() {
+        vm.initialize(isTwoPlayer = false, aiDifficulty = AiDifficulty.EASY)
+        advanceToPlaying()
+
+        vm.requestQuit()
+        assertTrue(vm.quitPromptVisible.value)
+        val frozen = state()
+        vm.resume() // app returning to the foreground must not unfreeze it
+        advance(2000)
+        assertEquals(frozen, state())
+
+        vm.cancelQuit()
+        assertEquals(false, vm.quitPromptVisible.value)
+        advance(500)
+        assertTrue(state().elapsedTimeMs > frozen.elapsedTimeMs)
+        assertEquals(emptyList<Boolean>(), results)
+    }
+
+    @Test
     fun `initializing again keeps the match in progress`() {
         vm.initialize(isTwoPlayer = true, aiDifficulty = AiDifficulty.MEDIUM, winsNeeded = 2)
         advanceToPlaying()

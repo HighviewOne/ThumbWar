@@ -11,6 +11,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -186,11 +187,53 @@ class GameScreenTest {
         composeTestRule.onNodeWithText("Round 1").assertDoesNotExist() // hidden so the labels don't overlap
     }
 
-    @Test
-    fun backCallsOnBack() {
-        show(isTwoPlayer = false, winsNeeded = 1)
+    private fun pressBack() =
         composeTestRule.runOnUiThread { composeTestRule.activity.onBackPressedDispatcher.onBackPressed() }
+
+    @Test
+    fun backAsksBeforeQuitting_quitCallsOnBack() {
+        show(isTwoPlayer = false, winsNeeded = 1)
+        advance(100)
+        pressBack()
+        advance(100)
+        assertEquals(false, backPressed)
+        composeTestRule.onNodeWithText("Quit match?").assertExists()
+
+        composeTestRule.onNodeWithText("Quit").performClick()
         assertTrue(backPressed)
+    }
+
+    @Test
+    fun backThenKeepPlaying_freezesTheMatchUntilAnswered() {
+        show(isTwoPlayer = false, winsNeeded = 1)
+        advanceToPlaying()
+        pressBack()
+        advance(100)
+        composeTestRule.onNodeWithText("Quitting now counts as a loss.").assertExists()
+        val frozen = state()
+        advance(1000)
+        assertEquals(frozen, state())
+
+        composeTestRule.onNodeWithText("Keep Playing").performClick()
+        advance(100)
+        composeTestRule.onNodeWithText("Quit match?").assertDoesNotExist()
+        assertEquals(false, backPressed)
+        assertTrue("Game time moves again", state().elapsedTimeMs > frozen.elapsedTimeMs)
+    }
+
+    @Test
+    fun backgroundedWithQuitPromptOpen_staysFrozenOnReturn() {
+        show(isTwoPlayer = false, winsNeeded = 1)
+        advanceToPlaying()
+        pressBack()
+        advance(100)
+        val frozen = state()
+
+        composeTestRule.activityRule.scenario.moveToState(Lifecycle.State.CREATED)
+        composeTestRule.activityRule.scenario.moveToState(Lifecycle.State.RESUMED)
+        advance(1000)
+        assertEquals(frozen, state())
+        composeTestRule.onNodeWithText("Quit match?").assertExists()
     }
 
     @Test

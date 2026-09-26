@@ -58,6 +58,9 @@ After a round win:
 If the app goes to the background the game pauses, fingers are let go, and a round that would
 have started in the background waits until you come back.
 
+Pressing Back mid-match freezes the game and asks **Quit match?** (Quit / Keep Playing). Once the
+match is over, Back leaves straight away.
+
 ## Modes
 
 **VS Computer.** Pick a difficulty, then Single Round or Best of 3. The whole screen controls
@@ -102,8 +105,9 @@ Sounds are Android system tones (no audio files). Both can be turned off in Sett
 pick a difficulty).
 
 **Statistics** count matches **against the computer** only: wins, losses, current win streak and
-best win streak. A result is recorded when a match finishes; matches abandoned with Back
-aren't counted. 2-player matches aren't recorded. Stats can be reset in Settings.
+best win streak. A result is recorded when a match finishes. Quitting a match with Back counts
+as a loss once play has begun (leaving during the opening countdown is free), so the dialog
+says so. 2-player matches aren't recorded. Stats can be reset in Settings.
 
 ## Planned Mechanics (Future)
 

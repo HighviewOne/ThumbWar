@@ -95,6 +95,8 @@ class AppFlowTest {
         composeTestRule.onNodeWithText("Round 1").assertDoesNotExist() // single round has no round label
 
         pressBack()
+        waitForText("Quit match?")
+        click("Quit")
         waitForText("VS COMPUTER")
         assertEquals(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED, composeTestRule.activity.requestedOrientation)
     }

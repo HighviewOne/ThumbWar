@@ -55,6 +55,10 @@ class GameViewModel(
     // While the app is in the background nothing may advance the game; resume() restarts the loop
     private var isPaused = false
 
+    // Back mid-match asks before quitting; the game stays frozen while the question is up
+    private val _quitPromptVisible = MutableStateFlow(false)
+    val quitPromptVisible: StateFlow<Boolean> = _quitPromptVisible.asStateFlow()
+
     init {
         viewModelScope.launch { soundEnabled.collect { soundManager.setSoundEnabled(it) } }
         viewModelScope.launch { vibrationEnabled.collect { soundManager.setVibrationEnabled(it) } }
@@ -218,9 +222,35 @@ class GameViewModel(
     }
 
     fun resume() {
+        // Coming back to the app with the quit question still open: stay frozen until it's answered
+        if (_quitPromptVisible.value) return
         isPaused = false
         if (_gameState.value.phase != GamePhase.GAME_OVER) {
             startGameLoop()
+        }
+    }
+
+    /** Freezes the match and asks whether to quit. */
+    fun requestQuit() {
+        _quitPromptVisible.value = true
+        pause()
+    }
+
+    /** Closes the quit question and picks the match back up. */
+    fun cancelQuit() {
+        _quitPromptVisible.value = false
+        resume()
+    }
+
+    /** True if quitting now forfeits the match, which counts as a loss against the computer. */
+    fun quitCountsAsLoss(): Boolean = forfeitCountsAsLoss(_gameState.value, isTwoPlayer)
+
+    /** Leaves the match; the caller navigates away. A forfeit is recorded so quitting can't dodge a loss. */
+    fun confirmQuit() {
+        if (!_quitPromptVisible.value) return
+        _quitPromptVisible.value = false
+        if (quitCountsAsLoss()) {
+            viewModelScope.launch { statsRepository.recordLoss() }
         }
     }
 
@@ -265,4 +295,14 @@ internal fun countdownSoundFor(previousText: String, text: String): GameSound? =
 internal fun singlePlayerMatchResult(state: GameState, isTwoPlayer: Boolean): Boolean? = when {
     isTwoPlayer || state.phase != GamePhase.GAME_OVER || !state.isMatchOver -> null
     else -> state.winner == 1
+}
+
+/**
+ * Quitting a single-player match counts as a loss once play has begun. Leaving during the
+ * opening countdown is free, and a finished match was already recorded.
+ */
+internal fun forfeitCountsAsLoss(state: GameState, isTwoPlayer: Boolean): Boolean = when {
+    isTwoPlayer || state.isMatchOver -> false
+    state.roundNumber == 1 && (state.phase == GamePhase.READY || state.phase == GamePhase.COUNTDOWN) -> false
+    else -> true
 }
