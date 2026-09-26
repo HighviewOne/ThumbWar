@@ -9,6 +9,9 @@ on:
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # lets Codecov authenticate the upload via GitHub OIDC (no stored token)
     
     steps:
     - name: Checkout code
@@ -42,7 +45,7 @@ jobs:
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@303a32d7a59b442fa8d48b6a1cc6825c09c847a5 # v7.1.1
       with:
-        token: ${{ secrets.CODECOV_TOKEN }}
+        use_oidc: true
         files: ./app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml
         fail_ci_if_error: false
         verbose: true
