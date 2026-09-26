@@ -1,6 +1,8 @@
 package com.thumbwar.ui.screens.menu
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -31,9 +33,11 @@ fun MainMenuScreen(
     val prefsRepo = remember { PreferencesRepository(context) }
     val defaultDifficulty by prefsRepo.defaultDifficulty.collectAsState(initial = AiDifficulty.MEDIUM.name)
 
+    // Scrolls when content doesn't fit (e.g. a phone in landscape)
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

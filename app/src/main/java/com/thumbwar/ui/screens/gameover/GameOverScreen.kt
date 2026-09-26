@@ -2,6 +2,8 @@ package com.thumbwar.ui.screens.gameover
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,9 +45,11 @@ fun GameOverScreen(
         )
     }
 
+    // Scrolls when content doesn't fit (e.g. a phone in landscape)
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(32.dp)
             .scale(entryScale.value),
         horizontalAlignment = Alignment.CenterHorizontally,

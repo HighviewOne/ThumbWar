@@ -1,6 +1,8 @@
 package com.thumbwar.ui.screens.settings
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -30,9 +32,11 @@ fun SettingsScreen(onBack: () -> Unit) {
     val currentStreak by statsRepo.currentStreak.collectAsState(initial = 0)
     val bestStreak by statsRepo.bestStreak.collectAsState(initial = 0)
 
+    // Scrolls when content doesn't fit (e.g. a phone in landscape)
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(rememberScrollState())
             .padding(24.dp)
     ) {
         // Header
