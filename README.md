@@ -52,7 +52,7 @@
 
 ## Building from Source
 
-**Prerequisites:** JDK 17+, Android SDK (API 34 recommended), Git
+**Prerequisites:** JDK 21+, Android SDK (API 37 platform; the build installs it if missing), Git
 
 ```bash
 git clone https://github.com/HighviewOne/ThumbWar.git
@@ -88,7 +88,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development setup.
 - **Rendering** — Canvas API (procedural, no bitmap assets)
 - **Game Loop** — Coroutine-based, ~60fps
 - **Testing** — JUnit 4, MockK, Robolectric, Compose Testing
-- **Build** — Gradle 8.5 with Kotlin DSL
+- **Build** — Gradle 9.8 with Kotlin DSL, AGP 9 (built-in Kotlin 2.4)
 
 ## Project Structure
 

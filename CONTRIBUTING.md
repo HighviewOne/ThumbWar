@@ -6,8 +6,8 @@ Thank you for your interest in contributing to ThumbWar! This guide will help yo
 
 ### Prerequisites
 - Android Studio (latest version)
-- JDK 17 or higher
-- Android SDK (API 34 recommended)
+- JDK 21 or higher (Robolectric needs it to run the UI tests on Android 16)
+- Android SDK with the API 37 platform (compileSdk; the build installs it if missing)
 - Git
 
 ### Local Setup

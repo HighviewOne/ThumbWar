@@ -31,7 +31,7 @@ android {
     defaultConfig {
         applicationId = "com.thumbwar"
         minSdk = 26
-        targetSdk = 34
+        targetSdk = 36
         versionCode = 7
         versionName = "1.3.1"
 
@@ -64,6 +64,13 @@ android {
     testOptions {
         // Robolectric needs merged resources and the manifest to run Compose UI tests on the JVM
         unitTests.isIncludeAndroidResources = true
+        // Robolectric's SDK 36 sandbox needs JDK 21 and reaches into FileDescriptor internals
+        unitTests.all {
+            it.jvmArgs(
+                "--add-opens=java.base/java.io=ALL-UNNAMED",
+                "--add-exports=java.base/jdk.internal.access=ALL-UNNAMED"
+            )
+        }
     }
 
     packaging {
