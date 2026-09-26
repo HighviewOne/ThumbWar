@@ -70,7 +70,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development setup.
 - **Detekt** — Kotlin linting and static analysis
 - **ktlint** — Code formatting and style
 - **Android Lint** — Android-specific checks; errors fail CI
-- **Unit Tests** — engine, AI, input and ViewModel, plus UI flows under Robolectric (~90% coverage, see badge)
+- **Unit Tests** — engine, AI, input and ViewModel, plus UI flows under Robolectric (~98% line coverage, see badge)
 - **Instrumentation Tests** — Compose UI tests on a device
 - **R8** — Release-build shrinking and obfuscation
 - **CI/CD** — Automated testing and building via GitHub Actions

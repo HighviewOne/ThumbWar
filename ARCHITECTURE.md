@@ -121,7 +121,13 @@ Tests that involve randomness use a seeded `Random`; tests that involve time use
 
 ## Build, CI and Release
 
-- `./gradlew assembleDebug`, `./gradlew testDebugUnitTest`.
+- `./gradlew assembleDebug`, `./gradlew testDebugUnitTest`. Needs JDK 21.
+- **Toolchain:** Gradle 9.8, AGP 9 with its built-in Kotlin compiler (Kotlin 2.4) and the Compose
+  compiler plugin. `minSdk` 26, `targetSdk` 36 (Android 16), `compileSdk` 37 (required by the
+  current AndroidX libraries).
+- **Edge-to-edge:** `MainActivity` calls `enableEdgeToEdge()` with transparent, light-icon system
+  bars on every Android version (Android 15+ enforces it anyway) and pads the whole app with
+  `safeDrawingPadding()`, so screens stay clear of the bars and camera cutouts.
 - **Release** (`./gradlew assembleRelease`) is shrunk with R8 and signed with `release.keystore`
   using credentials from `local.properties`; both are git-ignored and exist only locally. Every
   update must be signed with the same key, so keep a backup of both.

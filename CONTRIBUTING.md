@@ -185,14 +185,18 @@ Release APKs are built and signed locally; CI doesn't build releases.
 
 1. Make sure `main` has a user-facing change since the last release and CI is green.
 2. Bump `versionCode` (+1) and `versionName` in `app/build.gradle.kts`.
-3. `./gradlew clean ktlintCheck detekt testDebugUnitTest assembleRelease`. Signing uses
-   `release.keystore` and the passwords in `local.properties`, both git-ignored.
+3. `./gradlew clean ktlintCheck detekt lintDebug testDebugUnitTest assembleRelease` (on JDK 21).
+   Signing uses `release.keystore` and the passwords in `local.properties`, both git-ignored.
 4. Check the APK is signed with the release key, the same one as every earlier release, or
    existing installs can't update:
    `apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk`
-5. Install it over the previous release on a device (`adb install -r`) and smoke-test it.
-6. Commit the bump (`chore: bump to vX.Y.Z`), tag `vX.Y.Z`, and push both.
-7. `gh release create vX.Y.Z app/build/outputs/apk/release/app-release.apk --title vX.Y.Z`
+5. Test the upgrade players will get: install the current published release
+   (`gh release download vPREV -p app-release.apk`, then `adb install -r`), install the new APK
+   over it with `adb install -r`, and smoke-test it. Settings and stats should survive.
+6. Commit the bump (`chore: bump to vX.Y.Z`) and push it, then wait for CI to pass on that
+   commit before tagging; a clean CI machine can catch what a local run doesn't.
+7. Tag `vX.Y.Z`, push the tag, and
+   `gh release create vX.Y.Z app/build/outputs/apk/release/app-release.apk --title vX.Y.Z`
    with player-facing notes. Keep the asset named **`app-release.apk`**: the README and website
    Download buttons link to `releases/latest/download/app-release.apk`.
 
