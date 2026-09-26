@@ -30,8 +30,9 @@ drawn with the same scale, so what you see is what collides.
 1. **Contact.** When the thumbs come within 2 radii of each other, a pin starts.
 2. **Who pins.** The thumb moving faster *toward* the other is the pinner (by a small margin).
    If that's a tie, the faster-moving thumb wins; if both are still, nothing happens.
-3. **Holding it.** The pinned thumb can still move, at half speed (`PINNED_SPEED_FACTOR`). The
-   pinner has to stay on it. The progress ring fills over **2.5 seconds**.
+3. **Holding it.** The pinned thumb can still move, at 85% speed (`PINNED_SPEED_FACTOR`). The
+   pinner has to stay right on it: a finger that trails by a reaction time can be outrun. The
+   progress ring fills over **2.5 seconds**.
 4. **Escaping.** If the thumbs get **2.5 radii** apart, the pin breaks and progress resets to
    zero. Escaping takes more distance than starting a pin, so small wobbles don't break it.
 5. **Winning.** When the ring fills, the pinner wins the round.

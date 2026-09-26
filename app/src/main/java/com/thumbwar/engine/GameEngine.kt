@@ -116,7 +116,7 @@ class GameEngine(private val winsNeeded: Int = 1) {
 
         val distance = arenaScale.distance(thumb1.position, thumb2.position)
 
-        // Pinned thumb escaped (it moves slowly, so the pinner has to chase to hold the pin).
+        // Pinned thumb escaped (it's nearly as fast as the pinner, so the pinner has to chase closely).
         // Escape distance is larger than the pin threshold so a pin isn't lost to a tiny wobble.
         if (distance >= GameConfig.PIN_ESCAPE_DISTANCE) {
             cancelPin()

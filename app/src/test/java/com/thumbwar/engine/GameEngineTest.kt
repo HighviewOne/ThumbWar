@@ -310,6 +310,27 @@ class GameEngineTest {
     }
 
     @Test
+    fun `pinner whose finger lags behind loses the pin to a running thumb`() {
+        engine.startGame()
+        advanceToPlaying()
+        pinPlayer2()
+
+        // A human finger trails what it's chasing by a reaction time (~250 ms); a fast enough
+        // pinned thumb can open the escape gap. At half speed it never could.
+        val lagTicks = (250 / GameConfig.TICK_RATE_MS).toInt()
+        val trail = ArrayDeque(List(lagTicks) { engine.getState().thumb2.position })
+        engine.setPlayer2Target(Vector2(0.95f, 0.5f))
+        var ticks = 0
+        while (engine.getState().phase == GamePhase.PIN_IN_PROGRESS && ticks++ < 150) {
+            engine.setPlayer1Target(trail.removeFirst())
+            engine.tick(GameConfig.TICK_RATE_MS)
+            trail.addLast(engine.getState().thumb2.position)
+        }
+
+        assertEquals(GamePhase.PLAYING, engine.getState().phase)
+    }
+
+    @Test
     fun `wide arena - thumbs visibly apart do not pin`() {
         engine.setArenaSize(2000f, 1000f)
         engine.startGame()

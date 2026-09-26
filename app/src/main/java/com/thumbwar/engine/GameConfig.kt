@@ -9,7 +9,10 @@ object GameConfig {
     // Pin mechanics
     const val PIN_OVERLAP_THRESHOLD = THUMB_RADIUS * 2 // distance for pin detection
     const val PIN_ESCAPE_DISTANCE = THUMB_RADIUS * 2.5f // pinned thumb must get this far away to break free
-    const val PINNED_SPEED_FACTOR = 0.5f // pinned thumb moves at this fraction of THUMB_SPEED
+
+    // Pinned thumb moves at this fraction of THUMB_SPEED: a pinner tracking closely holds on,
+    // one whose finger trails by a reaction time (~250 ms) can be outrun
+    const val PINNED_SPEED_FACTOR = 0.85f
     const val PIN_DURATION_SECONDS = 2.5f // seconds to hold pin for win
 
     // Countdown
