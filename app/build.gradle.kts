@@ -1,15 +1,12 @@
 import java.util.Properties
 
 plugins {
+    // AGP 9 compiles Kotlin itself; only the Compose compiler plugin is added
     id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("org.jlleitschuh.gradle.ktlint") version "11.6.1"
+    id("org.jetbrains.kotlin.plugin.compose")
+    // Rules come from .editorconfig (wildcard imports and file names are allowed)
+    id("org.jlleitschuh.gradle.ktlint") version "14.2.0"
     id("jacoco")
-}
-
-ktlint {
-    @Suppress("DEPRECATION")
-    disabledRules.addAll("standard:no-wildcard-imports", "standard:filename")
 }
 
 android {
@@ -60,16 +57,8 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
-
     buildFeatures {
         compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.5"
     }
 
     testOptions {
@@ -123,7 +112,7 @@ dependencies {
 }
 
 jacoco {
-    toolVersion = "0.8.10"
+    toolVersion = "0.8.15"
 }
 
 // Record coverage for classes Robolectric loads through its own class loader
@@ -142,9 +131,9 @@ tasks.register<JacocoReport>("jacocoTestReport") {
         csv.required = false
     }
     sourceDirectories.setFrom(files("src/main/java", "src/main/kotlin"))
-    // Kotlin classes (not javac output); skip generated R/BuildConfig and Compose lambda holders
+    // Kotlin classes from AGP's built-in Kotlin compiler; skip generated R/BuildConfig and Compose lambda holders
     classDirectories.setFrom(
-        fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug")) {
+        fileTree(layout.buildDirectory.dir("intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes")) {
             exclude("**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/ComposableSingletons*")
         }
     )

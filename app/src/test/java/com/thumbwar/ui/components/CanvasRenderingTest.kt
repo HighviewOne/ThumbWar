@@ -18,12 +18,12 @@ import com.thumbwar.ui.theme.Player1Skin
 import com.thumbwar.ui.theme.Player2Skin
 import com.thumbwar.ui.theme.ThumbWarTheme
 import com.thumbwar.util.Vector2
+import kotlin.math.abs
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.annotation.GraphicsMode
-import kotlin.math.abs
 
 /**
  * Renders the Canvas-drawn components for real (native graphics) and checks pixels. The view is

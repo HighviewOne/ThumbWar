@@ -4,12 +4,12 @@ import com.thumbwar.engine.GamePhase
 import com.thumbwar.engine.GameState
 import com.thumbwar.engine.ThumbState
 import com.thumbwar.util.Vector2
+import kotlin.random.Random
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import kotlin.random.Random
 
 class AiControllerTest {
 

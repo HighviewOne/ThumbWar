@@ -22,6 +22,8 @@ import com.thumbwar.engine.GameConfig
 import com.thumbwar.engine.GamePhase
 import com.thumbwar.ui.theme.ThumbWarTheme
 import io.mockk.mockk
+import java.time.Duration
+import kotlin.random.Random
 import kotlinx.coroutines.flow.flowOf
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -29,8 +31,6 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.Shadows.shadowOf
-import java.time.Duration
-import kotlin.random.Random
 
 /**
  * Plays real games through GameScreen's touch handling. The game loop runs on the main looper

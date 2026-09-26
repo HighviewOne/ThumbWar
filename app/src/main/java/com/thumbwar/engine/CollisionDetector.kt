@@ -4,7 +4,8 @@ class CollisionDetector {
 
     data class PinResult(
         val isPinning: Boolean,
-        val pinnerPlayer: Int // 1 or 2, 0 if no pin
+        // 1 or 2, 0 if no pin
+        val pinnerPlayer: Int
     )
 
     fun checkPin(thumb1: ThumbEntity, thumb2: ThumbEntity, scale: ArenaScale = ArenaScale.SQUARE): PinResult {

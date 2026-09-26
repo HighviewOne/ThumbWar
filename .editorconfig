@@ -9,7 +9,17 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.{kt,kts}]
+# Android Studio's Kotlin style (ktlint 1.x otherwise defaults to its stricter ktlint_official)
+ktlint_code_style = android_studio
+# Project limit (detekt uses the same)
+max_line_length = 140
+# Composables are PascalCase
+ktlint_function_naming_ignore_when_annotated_with = Composable
 # Wildcard imports are acceptable for Compose/theme packages
 ktlint_standard_no-wildcard-imports = disabled
 # File naming may not match single-class constraint for sealed/companion files
 ktlint_standard_filename = disabled
+# Keep hand-chosen layout: one parameter per line for longer signatures, block bodies
+ktlint_standard_function-signature = disabled
+ktlint_standard_class-signature = disabled
+ktlint_standard_function-expression-body = disabled

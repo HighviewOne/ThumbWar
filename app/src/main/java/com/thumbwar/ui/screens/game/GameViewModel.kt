@@ -17,6 +17,7 @@ import com.thumbwar.engine.GamePhase
 import com.thumbwar.engine.GameState
 import com.thumbwar.input.InputEvent
 import com.thumbwar.input.InputManager
+import kotlin.random.Random
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlin.random.Random
 
 class GameViewModel(
     private val soundManager: SoundManager,
