@@ -32,7 +32,7 @@
 | 🏆 **Best of 3** | Choose single round or best-of-3 before each game |
 | 🎯 **Pin Mechanics** | Overlap and hold for 2.5s; ring fills yellow → red |
 | 🔊 **Sound & Haptics** | Toggleable audio and vibration feedback |
-| 📊 **Stats Tracking** | Wins, losses, and streaks persisted across sessions |
+| 📊 **Stats Tracking** | Wins, losses, and streaks vs the computer, saved across sessions |
 | ⚙️ **Settings** | Sound, vibration, default difficulty |
 
 ## How to Play
@@ -48,7 +48,6 @@
 - [Game Mechanics](GAME_MECHANICS.md) — Rules, physics, AI behavior
 - [Contributing Guide](CONTRIBUTING.md) — Development setup, code style, PR process
 - [Accessibility](ACCESSIBILITY.md) — Accessibility support and usage
-- [API Reference](https://github.com/HighviewOne/ThumbWar/wiki) — Generated KDoc
 
 ## Building from Source
 
@@ -69,9 +68,9 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development setup.
 
 - **Detekt** — Kotlin linting and static analysis
 - **ktlint** — Code formatting and style
-- **Unit Tests** — 70%+ coverage
-- **Instrumentation Tests** — UI and integration
-- **ProGuard** — Release-build obfuscation
+- **Unit Tests** — engine, AI, input and ViewModel, plus UI flows under Robolectric (~90% coverage, see badge)
+- **Instrumentation Tests** — Compose UI tests on a device
+- **R8** — Release-build shrinking and obfuscation
 - **CI/CD** — Automated testing and building via GitHub Actions
 
 ```bash
@@ -86,14 +85,14 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development setup.
 - **Persistence** — DataStore Preferences
 - **Rendering** — Canvas API (procedural, no bitmap assets)
 - **Game Loop** — Coroutine-based, ~60fps
-- **Testing** — JUnit 4, MockK, Compose Testing, Espresso
+- **Testing** — JUnit 4, MockK, Robolectric, Compose Testing
 - **Build** — Gradle 8.5 with Kotlin DSL
 
 ## Project Structure
 
 ```
 app/src/main/java/com/thumbwar/
-├── engine/      — Game loop, collision detection, phases
+├── engine/      — Game rules, collision detection, phases
 ├── ui/          — Jetpack Compose screens and components
 ├── input/       — Touch input handling
 ├── ai/          — AI opponent logic

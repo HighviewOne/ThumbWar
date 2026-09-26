@@ -1,288 +1,109 @@
 # ThumbWar Game Mechanics
 
-## Game Overview
+How the game plays, with the numbers the code actually uses. Tunable values live in
+`app/src/main/java/com/thumbwar/engine/GameConfig.kt`.
 
-ThumbWar is a digital thumb wrestling simulation for Android. Players control cartoon thumbs on a touchscreen to compete in a pin-based game mechanic.
+## Units
 
-## Core Mechanics
+Positions are stored as fractions of the arena (0..1 on each axis). Distances and speeds are
+measured in **world units, where 1.0 is the arena's shorter side** (`ArenaScale`). This keeps
+collisions and movement matching what's drawn, whatever the screen's aspect ratio. Thumbs are
+drawn with the same scale, so what you see is what collides.
 
-### The Pin
+| Value | Setting |
+|---|---|
+| Thumb radius | 0.06 of the shorter side |
+| Thumb top speed | 0.8 shorter-sides per second |
+| Arena bounds | thumbs stay within 5%–95% of each axis |
+| Start positions | P1 at (0.3, 0.5), P2 at (0.7, 0.5) |
+| Game tick | ~16 ms (~60 per second) |
 
-The winning condition is to "pin" your opponent's thumb. A successful pin requires:
+## Movement
 
-1. **Overlap**: The two thumbs must overlap (touch/intersect)
-2. **Duration**: The overlap must be maintained for 2.5 seconds
-3. **Victory**: After 2.5 seconds of sustained overlap, the pin is successful
+- A thumb moves toward the point your finger is on, at up to top speed. It doesn't teleport.
+- Lift your finger and the thumb glides to a stop.
+- The computer's thumb has the same top speed as yours. Difficulty changes how it decides,
+  not how fast it moves.
 
-#### Pin Detection Algorithm
+## The Pin
 
-```
-Frame Update Loop:
-  1. Calculate distance between thumb centers
-  2. If distance < (thumb1.radius + thumb2.radius):
-       - Thumbs are overlapping
-       - Start/continue pin countdown
-  3. If pin countdown >= 2500ms:
-       - Pin successful → Current player wins round
-       - Award point and transition to ROUND_OVER phase
-  4. If the pinned thumb breaks free (distance >= 2.5 × radius):
-       - Reset pin countdown
-```
+1. **Contact.** When the thumbs come within 2 radii of each other, a pin starts.
+2. **Who pins.** The thumb moving faster *toward* the other is the pinner (by a small margin).
+   If that's a tie, the faster-moving thumb wins; if both are still, nothing happens.
+3. **Holding it.** The pinned thumb can still move, at half speed (`PINNED_SPEED_FACTOR`). The
+   pinner has to stay on it. The progress ring fills over **2.5 seconds**.
+4. **Escaping.** If the thumbs get **2.5 radii** apart, the pin breaks and progress resets to
+   zero. Escaping takes more distance than starting a pin, so small wobbles don't break it.
+5. **Winning.** When the ring fills, the pinner wins the round.
 
-While pinned, a thumb moves at half speed (`PINNED_SPEED_FACTOR`), so the pinner has to
-chase to hold the pin. Escaping takes more distance than starting a pin (2.5 vs 2 radii),
-so a small wobble doesn't break it. All distances and speeds are measured in units of the
-arena's shorter side (`ArenaScale`), so they match what's on screen at any aspect ratio.
+## Game Phases
 
-#### Collision Detection
+`GamePhase` has five values:
 
-Uses circle-to-circle collision (both thumbs are circles):
+| Phase | What happens |
+|---|---|
+| `READY` | Before the countdown starts |
+| `COUNTDOWN` | "1", "2", "3", "4" (0.8 s each), then "I declare a thumb war!" (1.5 s): 4.7 s in all. Touches are ignored. |
+| `PLAYING` | Both thumbs move; contact starts a pin |
+| `PIN_IN_PROGRESS` | Ring filling; escape returns to `PLAYING` |
+| `GAME_OVER` | The round is over. `isMatchOver` says whether the match is too. |
 
-```
-distance = sqrt((x2 - x1)² + (y2 - y1)²)
-isColliding = distance < (radius1 + radius2)
+After a round win:
 
-Game Constants:
-  - Thumb radius: 40 display units
-  - Arena width: 1440 px (landscape)
-  - Arena height: 810 px (landscape)
-```
+- **Match not over** (best of 3): a "Player N wins the round!" banner shows for 2 s, then the
+  next round starts with a fresh countdown and thumbs back at their start positions.
+- **Match over**: after 1.5 s the game-over screen shows the winner, the round score,
+  **REMATCH** (same mode, difficulty and match length) and **MAIN MENU**.
 
-### Movement
+If the app goes to the background the game pauses, fingers are let go, and a round that would
+have started in the background waits until you come back.
 
-Each thumb has position and velocity:
+## Modes
 
-```kotlin
-data class ThumbEntity(
-    val id: Int,
-    val position: Vector2,        // Current position
-    val velocity: Vector2,        // Current velocity (pixels/frame)
-    val isPlayerThumb: Boolean,   // Player or AI controlled
-    val radius: Float = 40f
-)
-```
+**VS Computer.** Pick a difficulty, then Single Round or Best of 3. The whole screen controls
+your thumb (P1).
 
-#### Player Thumb
-- Moves directly to touch coordinates
-- Responds immediately to player input
-- Movement is limited to arena boundaries
+**2 Players.** One device, forced to landscape. The side of the screen a finger first touches
+(left = P1, right = P2) decides which thumb it controls, and it keeps controlling that thumb
+even across the middle line. If a player has two fingers down and lifts one, the other one
+takes over.
 
-#### AI Thumb
-- Moves autonomously based on AI difficulty
-- Uses decision-making algorithm to move toward/away from player thumb
-- Adapts strategy based on game state
+**Match length.** Single Round (first pin wins) or Best of 3 (first to 2 round wins).
 
-### Game Phases
+## Computer Difficulty
 
-The game progresses through distinct phases:
+Each difficulty re-decides after a reaction delay and sometimes makes a deliberate mistake
+(a random nearby target).
 
-#### READY Phase
-- Initial state when game starts
-- Neither thumb is visible yet
-- Waiting for phase transition to begin
+| | Easy | Medium | Hard |
+|---|---|---|---|
+| Reaction delay | 400 ms | 200 ms | 80 ms |
+| Mistake chance | 30% | 15% | 10% |
+| Style | Wanders when far away, creeps closer when near; rests for 0.5–1.5 s on 15% of decisions | Approaches; within 0.3 mixes approaching and dodging; attacks within 0.15 | Predicts where you'll be 0.1 s ahead; attacks within 0.12; feints (dodges) 30% of the time within 0.25 |
 
-#### COUNTDOWN Phase (4 seconds)
-- "1, 2, 3, 4, I declare... THUMB WAR!" countdown
-- Thumbs start at opposite ends of arena
-- Visual countdown overlay shown to player
+On Medium and Hard, a pinned computer thumb tries to dodge away. The computer starts every
+round fresh.
 
-#### PLAYING Phase
-- Main gameplay
-- Player controls their thumb via touch
-- AI thumb moves autonomously
-- Both thumbs visible and interactive
-- Win condition: Pin opponent for 2.5 seconds
+## Sound and Vibration
 
-#### PIN_IN_PROGRESS Phase
-- Triggered when thumbs overlap
-- 2.5 second countdown timer displayed
-- Progress ring animation shows pin progress
-- If countdown completes: transition to ROUND_OVER (current player wins)
-- If separation occurs: return to PLAYING phase
+| Event | Sound | Vibration |
+|---|---|---|
+| Countdown number | beep | 30 ms |
+| "I declare a thumb war!" | distinct beep | 50 ms |
+| Pin starts | thud | 100 ms |
+| Round won (match continues) | pin-complete cue | 150 ms |
+| Match won | fanfare | pattern |
 
-#### ROUND_OVER Phase
-- Round complete, winner determined
-- Show winner announcement
-- Display round result (1-0, 0-1, or 1-1)
-- Wait for player to continue (tap to start next round or match over)
+Sounds are Android system tones (no audio files). Both can be turned off in Settings.
 
-#### MATCH_OVER Phase (Best-of-3)
-- In best-of-3 mode: happens after 2 rounds
-- Winner has won 2+ rounds
-- Display match results and overall winner
-- Show final statistics
+## Settings and Statistics
 
-### Scoring
+**Settings:** sound effects, vibration, and a default difficulty (shown highlighted when you
+pick a difficulty).
 
-#### Single Round
-- First player to achieve a successful pin wins the round
-- Score: 1 point to winner, 0 to loser
-
-#### Best-of-3 Match
-- Play up to 3 rounds
-- First player to win 2 rounds wins the match
-- Typical scenarios:
-  - Player 1: 2-0 (match over after 2 rounds)
-  - Player 1: 2-1 (match over after 3 rounds)
-  - Player 1: 1-2 (player 1 doesn't win)
-
-### Game Modes
-
-#### VS Computer (AI)
-- Single player vs AI opponent
-- Three difficulty levels:
-  - **Easy**: AI moves slowly and cautiously
-  - **Medium**: AI balances offense/defense
-  - **Hard**: AI moves aggressively and strategically
-- Best-of-3 match option available
-
-#### 2-Player Local
-- Two players on same device
-- Player 1: Left thumb
-- Player 2: Right thumb
-- Both players use touch controls simultaneously
-
-### AI Difficulty
-
-AI behavior controlled by `AiDifficulty` enum:
-
-#### Easy
-- Slower movement speed
-- Less aggressive positioning
-- Easier to evade and pin
-- Good for learning game mechanics
-
-#### Medium
-- Balanced movement speed
-- Switches between aggressive and defensive
-- Competitive but fair challenge
-
-#### Hard
-- Fast movement speed
-- Aggressive positioning and pinning strategy
-- Difficult to pin
-- Challenging opponent for skilled players
-
-## Game Loop
-
-The game runs at approximately **60 frames per second**:
-
-```
-While Game Running:
-  1. Process Input
-     - Read touch events
-     - Update player thumb position
-  
-  2. Update Game State
-     - Update AI thumb position (based on difficulty)
-     - Apply velocity/movement constraints
-     - Ensure thumbs stay within arena
-  
-  3. Collision Detection
-     - Check if thumbs overlap
-     - Update pin state and countdown
-  
-  4. Phase Management
-     - Check if phase transition needed
-     - Update timers and phase-specific logic
-  
-  5. Render
-     - Draw arena background
-     - Draw thumbs at current positions
-     - Draw UI overlays (score, timer, progress)
-  
-  6. Delay
-     - Sleep ~16ms to maintain 60fps
-```
-
-## Game Constants
-
-Located in `GameConfig.kt`:
-
-```kotlin
-object GameConfig {
-    const val THUMB_RADIUS = 40f
-    const val PIN_DURATION = 2500L  // milliseconds
-    const val COUNTDOWN_DURATION = 4000L  // milliseconds
-    const val ARENA_WIDTH = 1440f
-    const val ARENA_HEIGHT = 810f
-    const val DEFAULT_THUMB_SPEED = 5f  // pixels per frame
-    const val MAX_THUMB_SPEED = 12f
-    const val MIN_BOUNDARY_OFFSET = 50f
-}
-```
-
-## User Experience Flow
-
-```
-1. Main Menu Screen
-   ├─ "VS Computer" → AI Difficulty Selection
-   │  ├─ Easy   ─┐
-   │  ├─ Medium─┼─ Game Starts
-   │  └─ Hard  ─┘
-   ├─ "2 Players" → Game Starts
-   └─ "Settings" → Settings Screen
-
-2. Game Screen
-   ├─ Countdown (4s) → "1, 2, 3, 4, I declare"
-   ├─ Playing
-   │  ├─ Player pins opponent → Pin animation
-   │  └─ Round Over
-   ├─ Best-of-3? → Next Round or Match Over
-   └─ Match Over → Results Screen
-
-3. Game Over Screen
-   ├─ Winner announcement
-   ├─ Final score
-   ├─ Statistics
-   └─ Menu buttons (Replay, Menu, Settings)
-```
-
-## Settings
-
-Players can customize:
-
-1. **Sound**: Toggle sound effects on/off
-2. **Vibration**: Toggle haptic feedback on/off
-3. **AI Difficulty**: Select AI opponent difficulty (for VS Computer)
-
-Settings are persisted via DataStore Preferences.
-
-## Statistics Tracking
-
-The game tracks and persists:
-
-- **Total Wins**: Cumulative wins across all games
-- **Total Losses**: Cumulative losses across all games
-- **Current Streak**: Current winning streak
-- **Best Streak**: Best winning streak achieved
-- **Win Ratio**: Calculated as wins / (wins + losses)
-
-Statistics are stored per game mode (VS Computer, 2-Player).
-
-## Performance Considerations
-
-### Frame Rate
-- Target: 60 FPS
-- Implemented using Coroutines with 16ms frame timing
-- Canvas rendering for optimal performance
-
-### Touch Latency
-- Input processed every frame
-- Direct canvas rendering (no expensive recompositions)
-- Minimal input-to-display latency
-
-### Memory
-- Efficient game state objects
-- No per-frame allocations in game loop
-- Canvas reused across frames
-
-## Accessibility Features
-
-- **Content Descriptions**: All UI elements have descriptive labels
-- **Touch Targets**: Minimum 48dp for all interactive elements
-- **Color Contrast**: High contrast for readability
-- **Screen Reader Support**: Compatible with TalkBack
+**Statistics** count matches **against the computer** only: wins, losses, current win streak and
+best win streak. A result is recorded when a match finishes; matches abandoned with Back
+aren't counted. 2-player matches aren't recorded. Stats can be reset in Settings.
 
 ## Planned Mechanics (Future)
 
