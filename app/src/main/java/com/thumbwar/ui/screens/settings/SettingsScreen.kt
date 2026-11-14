@@ -8,11 +8,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.thumbwar.ai.AiDifficulty
+import com.thumbwar.data.DifficultyStats
 import com.thumbwar.data.PreferencesRepository
 import com.thumbwar.data.StatsRepository
 import com.thumbwar.ui.theme.RingGold
+import com.thumbwar.util.formatPinTime
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,6 +34,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     val losses by statsRepo.losses.collectAsState(initial = 0)
     val currentStreak by statsRepo.currentStreak.collectAsState(initial = 0)
     val bestStreak by statsRepo.bestStreak.collectAsState(initial = 0)
+    val byDifficulty by statsRepo.byDifficulty.collectAsState(initial = emptyMap())
 
     // Scrolls when content doesn't fit (e.g. a phone in landscape)
     Column(
@@ -98,10 +102,13 @@ fun SettingsScreen(onBack: () -> Unit) {
         Text("STATISTICS", style = MaterialTheme.typography.headlineMedium, color = RingGold)
         Spacer(modifier = Modifier.height(16.dp))
 
-        StatsRow("Wins", wins.toString())
-        StatsRow("Losses", losses.toString())
+        StatsRow("Total Wins", wins.toString())
+        StatsRow("Total Losses", losses.toString())
         StatsRow("Current Streak", currentStreak.toString())
         StatsRow("Best Streak", bestStreak.toString())
+
+        Spacer(modifier = Modifier.height(16.dp))
+        DifficultyStatsTable(byDifficulty)
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -141,5 +148,34 @@ private fun StatsRow(label: String, value: String) {
     ) {
         Text(label, style = MaterialTheme.typography.bodyLarge)
         Text(value, style = MaterialTheme.typography.bodyLarge, color = RingGold)
+    }
+}
+
+/** One row per difficulty: wins, losses and fastest pin against the computer. */
+@Composable
+private fun DifficultyStatsTable(stats: Map<AiDifficulty, DifficultyStats>) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        DifficultyStatsLine("", "Wins", "Losses", "Fastest pin", header = true)
+        AiDifficulty.entries.forEach { d ->
+            val s = stats[d] ?: DifficultyStats()
+            DifficultyStatsLine(
+                d.name.lowercase().replaceFirstChar { it.uppercase() },
+                s.wins.toString(),
+                s.losses.toString(),
+                s.fastestPinMs?.let(::formatPinTime) ?: "–"
+            )
+        }
+    }
+}
+
+@Composable
+private fun DifficultyStatsLine(label: String, wins: String, losses: String, fastest: String, header: Boolean = false) {
+    val style = if (header) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyLarge
+    val valueColor = if (header) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f) else RingGold
+    Row(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+        Text(label, style = style, modifier = Modifier.weight(1.2f))
+        Text(wins, style = style, color = valueColor, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+        Text(losses, style = style, color = valueColor, textAlign = TextAlign.End, modifier = Modifier.weight(1f))
+        Text(fastest, style = style, color = valueColor, textAlign = TextAlign.End, modifier = Modifier.weight(1.6f))
     }
 }

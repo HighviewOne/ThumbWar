@@ -50,6 +50,7 @@ class GameViewModel(
     val gameState: StateFlow<GameState> = _gameState.asStateFlow()
 
     private var isTwoPlayer = false
+    private var aiDifficulty = AiDifficulty.MEDIUM
     private var lastPhase = GamePhase.READY
     private var lastCountdownText = ""
     private var nextPinTickProgress = 0f
@@ -62,6 +63,11 @@ class GameViewModel(
     private var isPaused = false
 
     // Back mid-match asks before quitting; the game stays frozen while the question is up
+    // Fastest pin set this match that beat the stored record for its difficulty; the game-over
+    // screen announces it. Null if no record fell.
+    private val _newRecordMs = MutableStateFlow<Long?>(null)
+    val newRecordMs: StateFlow<Long?> = _newRecordMs.asStateFlow()
+
     private val _quitPromptVisible = MutableStateFlow(false)
     val quitPromptVisible: StateFlow<Boolean> = _quitPromptVisible.asStateFlow()
 
@@ -76,6 +82,7 @@ class GameViewModel(
         if (initialized) return
         initialized = true
         this.isTwoPlayer = isTwoPlayer
+        this.aiDifficulty = aiDifficulty
         this.winsNeeded = winsNeeded
         engine = newEngine()
         inputManager = InputManager(isTwoPlayer)
@@ -183,6 +190,7 @@ class GameViewModel(
                     soundManager.play(GameSound.PIN_COMPLETE)
                     soundManager.vibrate(GameHaptic.ROUND_WON)
                 }
+                recordPin(state)
                 recordMatchResult(state)
             }
             else -> {}
@@ -192,7 +200,18 @@ class GameViewModel(
     private fun recordMatchResult(state: GameState) {
         val playerWon = singlePlayerMatchResult(state, isTwoPlayer) ?: return
         viewModelScope.launch {
-            if (playerWon) statsRepository.recordWin() else statsRepository.recordLoss()
+            if (playerWon) statsRepository.recordWin(aiDifficulty) else statsRepository.recordLoss(aiDifficulty)
+        }
+    }
+
+    /** Every round the human wins against the computer is a timed pin, best-of-3 rounds included. */
+    private fun recordPin(state: GameState) {
+        if (isTwoPlayer || state.winner != 1) return
+        val pinMs = state.playTimeMs
+        viewModelScope.launch {
+            if (statsRepository.recordPin(aiDifficulty, pinMs)) {
+                _newRecordMs.value = minOf(pinMs, _newRecordMs.value ?: pinMs)
+            }
         }
     }
 
@@ -274,7 +293,7 @@ class GameViewModel(
         if (!_quitPromptVisible.value) return
         _quitPromptVisible.value = false
         if (quitCountsAsLoss()) {
-            viewModelScope.launch { statsRepository.recordLoss() }
+            viewModelScope.launch { statsRepository.recordLoss(aiDifficulty) }
         }
     }
 

@@ -31,6 +31,8 @@ data class GameState(
     val countdownText: String = "",
     val winner: Int = 0, // 0 = no winner yet
     val elapsedTimeMs: Long = 0,
+    /** Time this round has been played since "go", countdown excluded. */
+    val playTimeMs: Long = 0,
     val roundNumber: Int = 1,
     val p1RoundWins: Int = 0,
     val p2RoundWins: Int = 0,

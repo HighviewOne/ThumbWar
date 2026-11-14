@@ -17,7 +17,7 @@ app/src/main/java/com/thumbwar/
 │   └── Sounds.kt             # GameSound enum
 ├── data/
 │   ├── PreferencesRepository.kt  # Sound, vibration, default difficulty (DataStore)
-│   └── StatsRepository.kt        # Wins, losses, streaks vs the computer (DataStore)
+│   └── StatsRepository.kt        # Wins, losses, streaks, fastest pins vs the computer, per difficulty (DataStore)
 ├── engine/                   # Pure Kotlin, no Android dependencies
 │   ├── ArenaScale.kt         # Normalized <-> world units (1.0 = arena's shorter side)
 │   ├── CollisionDetector.kt  # Pin detection and who the pinner is
@@ -50,7 +50,7 @@ Finger touches the arena
 Game loop (GameViewModel, a coroutine in viewModelScope, once per display refresh)
   → AiController picks player 2's target (vs computer only)
   → GameEngine.tick(delta): move thumbs, detect/advance/cancel pins, end rounds
-  → sounds and vibration for what changed; stats recorded when a match ends
+  → sounds and vibration for what changed; stats recorded when a match ends, pins timed per round won
   → new GameState published on a StateFlow
 
 GameScreen collects the StateFlow → Compose redraws the arena and overlays

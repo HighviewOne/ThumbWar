@@ -32,7 +32,7 @@
 | 🏆 **Best of 3** | Choose single round or best-of-3 before each game |
 | 🎯 **Pin Mechanics** | Overlap and hold for 2.5s; ring fills yellow → red with a quickening tick. The pinned thumb can still break free |
 | 🔊 **Sound & Haptics** | Toggleable audio and vibration feedback |
-| 📊 **Stats Tracking** | Wins, losses, and streaks vs the computer, saved across sessions |
+| 📊 **Stats Tracking** | Wins, losses, streaks and fastest pin vs the computer, per difficulty, saved across sessions |
 | ⚙️ **Settings** | Sound, vibration, default difficulty |
 | ⏸️ **Quit Safely** | Back mid-match pauses and asks before quitting |
 

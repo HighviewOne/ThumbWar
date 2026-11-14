@@ -11,6 +11,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.thumbwar.MainActivity
+import com.thumbwar.ai.AiDifficulty
 import com.thumbwar.data.PreferencesRepository
 import com.thumbwar.data.StatsRepository
 import kotlinx.coroutines.flow.first
@@ -57,7 +58,7 @@ class AppFlowTest {
 
     @Test
     fun mainMenu_showsWinStreakOnceThereIsOne() {
-        runBlocking { stats.recordWin() }
+        runBlocking { stats.recordWin(AiDifficulty.EASY) }
         waitForText("Win Streak: 1")
     }
 
@@ -120,12 +121,16 @@ class AppFlowTest {
     @Test
     fun settings_showsStatsAndResetClearsThem() {
         runBlocking {
-            stats.recordWin()
-            stats.recordLoss()
+            stats.recordWin(AiDifficulty.EASY)
+            stats.recordLoss(AiDifficulty.EASY)
+            stats.recordPin(AiDifficulty.HARD, 3240)
         }
         click("SETTINGS")
         waitForText("STATISTICS")
-        composeTestRule.waitUntil(5_000) { composeTestRule.onAllNodesWithText("1").fetchSemanticsNodes().size == 3 }
+        // Total wins, total losses, best streak, and Easy's wins and losses
+        composeTestRule.waitUntil(5_000) { composeTestRule.onAllNodesWithText("1").fetchSemanticsNodes().size == 5 }
+        composeTestRule.onNodeWithText("Fastest pin").assertExists()
+        composeTestRule.onNodeWithText("3.2 s").assertExists()
 
         // Below the fold on a small screen: scroll to it like a user would
         composeTestRule.onNodeWithText("Reset Stats").performScrollTo().performClick()

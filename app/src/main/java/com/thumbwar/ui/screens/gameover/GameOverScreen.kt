@@ -14,6 +14,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.thumbwar.ui.theme.MenuAccent
 import com.thumbwar.ui.theme.VictoryGold
+import com.thumbwar.util.formatPinTime
+
+/** A fastest pin set in the match just played: [difficulty] as in the route ("easy", "hard"...). */
+data class NewRecord(val difficulty: String, val pinMs: Long)
 
 @Composable
 fun GameOverScreen(
@@ -21,6 +25,7 @@ fun GameOverScreen(
     p1Score: Int,
     p2Score: Int,
     winsNeeded: Int = 1,
+    newRecord: NewRecord? = null,
     onRematch: () -> Unit,
     onMainMenu: () -> Unit
 ) {
@@ -102,6 +107,22 @@ fun GameOverScreen(
                     color = if (winner == 2) VictoryGold else MaterialTheme.colorScheme.onSurface
                 )
             }
+        }
+
+        if (newRecord != null) {
+            Spacer(modifier = Modifier.height(24.dp))
+            Text(
+                "NEW RECORD!",
+                style = MaterialTheme.typography.labelLarge,
+                color = VictoryGold,
+                letterSpacing = 4.sp
+            )
+            Text(
+                "Fastest pin on ${newRecord.difficulty.lowercase().replaceFirstChar { it.uppercase() }}: " +
+                    formatPinTime(newRecord.pinMs),
+                style = MaterialTheme.typography.titleLarge,
+                textAlign = TextAlign.Center
+            )
         }
 
         Spacer(modifier = Modifier.height(48.dp))

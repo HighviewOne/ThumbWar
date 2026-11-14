@@ -51,6 +51,24 @@ class NavGraphTest {
     }
 
     @Test
+    fun gameOver_announcesANewRecord() {
+        composeTestRule.runOnUiThread {
+            nav.navigate(Routes.gameOver("single", "hard", 1, p1Score = 1, p2Score = 0, newRecordMs = 3240)) {
+                popUpTo(Routes.MAIN_MENU)
+            }
+        }
+        composeTestRule.waitForIdle()
+        composeTestRule.onNodeWithText("NEW RECORD!").assertExists()
+        composeTestRule.onNodeWithText("Fastest pin on Hard: 3.2 s").assertExists()
+    }
+
+    @Test
+    fun gameOver_withoutARecordSaysNothingAboutOne() {
+        finishGame("single", "easy", winner = 1, winsNeeded = 1)
+        composeTestRule.onNodeWithText("NEW RECORD!").assertDoesNotExist()
+    }
+
+    @Test
     fun rematch_startsANewGameWithTheSameSettings() {
         finishGame("single", "hard", winner = 2, winsNeeded = 2)
         composeTestRule.onNodeWithText("REMATCH").performClick()
