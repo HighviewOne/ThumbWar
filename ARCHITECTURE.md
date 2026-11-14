@@ -13,8 +13,9 @@ app/src/main/java/com/thumbwar/
 │   ├── AiController.kt       # Computer opponent; injectable Random for deterministic tests
 │   └── AiDifficulty.kt       # EASY, MEDIUM, HARD
 ├── audio/
-│   ├── SoundManager.kt       # ToneGenerator sounds + Vibrator, each switchable
-│   └── Sounds.kt             # GameSound enum
+│   ├── SoundManager.kt       # SoundPool sounds + Vibrator, each switchable; one shared per app
+│   ├── GameHaptic.kt         # Vibration per game moment (built-in effect + fallback buzz)
+│   └── Sounds.kt             # GameSound enum → res/raw sound files
 ├── data/
 │   ├── PreferencesRepository.kt  # Sound, vibration, default difficulty (DataStore)
 │   └── StatsRepository.kt        # Wins, losses, streaks, fastest pins vs the computer, per difficulty (DataStore)
@@ -143,6 +144,6 @@ Tests that involve randomness use a seeded `Random`; tests that involve time use
 1. **Multiplayer**: Network play with other devices
 2. **Leaderboards**: Cloud-based high score tracking
 3. **Themes**: Multiple visual themes
-4. **Sound Effects**: Custom audio files and music
+4. **Music**: Background music
 5. **Analytics**: User engagement tracking
 6. **Monetization**: In-app purchases for cosmetics

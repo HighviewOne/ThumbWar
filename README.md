@@ -113,6 +113,9 @@ Contributions welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, code st
 
 MIT License — free to use and modify.
 
+Sound effects are from [Kenney](https://kenney.nl)'s Interface Sounds, RPG Sounds and Music
+Jingles packs, released under CC0 (public domain).
+
 ---
 
 <div align="center">

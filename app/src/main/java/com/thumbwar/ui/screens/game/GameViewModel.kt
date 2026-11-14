@@ -313,7 +313,7 @@ class GameViewModel(
                 val app = checkNotNull(this[APPLICATION_KEY])
                 val prefs = PreferencesRepository(app)
                 GameViewModel(
-                    soundManager = SoundManager(app),
+                    soundManager = SoundManager.shared(app),
                     soundEnabled = prefs.soundEnabled,
                     vibrationEnabled = prefs.vibrationEnabled,
                     statsRepository = StatsRepository(app)
@@ -325,7 +325,7 @@ class GameViewModel(
     override fun onCleared() {
         super.onCleared()
         gameLoopJob?.cancel()
-        soundManager.release()
+        // The SoundManager is shared by the whole app (see SoundManager.shared), so it stays loaded
     }
 }
 
