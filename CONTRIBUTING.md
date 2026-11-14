@@ -193,12 +193,15 @@ Release APKs are built and signed locally; CI doesn't build releases.
 5. Test the upgrade players will get: install the current published release
    (`gh release download vPREV -p app-release.apk`, then `adb install -r`), install the new APK
    over it with `adb install -r`, and smoke-test it. Settings and stats should survive.
-6. Commit the bump (`chore: bump to vX.Y.Z`) and push it, then wait for CI to pass on that
-   commit before tagging; a clean CI machine can catch what a local run doesn't.
+6. Commit the bump (`chore: bump to vX.Y.Z`) on a `release-X.Y.Z` branch and open a PR; `main`
+   only changes through PRs. Once its CI passes, rebase-merge it, rebuild the APK from the merged
+   `main` (and re-check the signature), and wait for CI to pass on `main` before tagging; a clean
+   CI machine can catch what a local run doesn't.
 7. Tag `vX.Y.Z`, push the tag, and
    `gh release create vX.Y.Z app/build/outputs/apk/release/app-release.apk --title vX.Y.Z`
    with player-facing notes. Keep the asset named **`app-release.apk`**: the README and website
    Download buttons link to `releases/latest/download/app-release.apk`.
+8. Check that link: download it and compare its SHA-256 with the APK you built.
 
 Keep a backup of `release.keystore` and its passwords somewhere safe. If they're lost, no
 future release can install over existing copies.
