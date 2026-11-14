@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.thumbwar.ai.AiDifficulty
+import com.thumbwar.audio.GameHaptic
 import com.thumbwar.audio.GameSound
 import com.thumbwar.audio.SoundManager
 import com.thumbwar.data.StatsRepository
@@ -197,7 +198,7 @@ class GameViewModelTest {
         assertTrue("Expected a run of ticks, got ${tickTimes.size}", tickTimes.size in 6..14)
         val gaps = tickTimes.zipWithNext { a, b -> b - a }
         assertTrue("Ticks should speed up: $gaps", gaps.last() < gaps.first() / 2)
-        verify(exactly = tickTimes.size) { soundManager.vibrate(15) }
+        verify(exactly = tickTimes.size) { soundManager.vibrate(GameHaptic.PIN_TICK) }
     }
 
     @Test
@@ -218,7 +219,7 @@ class GameViewModelTest {
 
         assertEquals(GamePhase.PLAYING, state().phase)
         verify(exactly = 1) { soundManager.play(GameSound.PIN_ESCAPE) }
-        verify(exactly = 1) { soundManager.vibratePattern(PIN_ESCAPE_VIBRATION) }
+        verify(exactly = 1) { soundManager.vibrate(GameHaptic.PIN_ESCAPE) }
     }
 
     @Test

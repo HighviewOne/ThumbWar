@@ -57,19 +57,30 @@ class SoundManager(private val context: Context) {
         } catch (_: Exception) {}
     }
 
-    fun vibrate(durationMs: Long = 50) {
+    fun vibrate(haptic: GameHaptic) {
         if (!vibrationEnabled) return
         try {
-            vibrator.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
+            vibrator.vibrate(effectFor(haptic))
         } catch (_: Exception) {}
     }
 
-    fun vibratePattern(pattern: LongArray) {
-        if (!vibrationEnabled) return
-        try {
-            vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
-        } catch (_: Exception) {}
+    private fun effectFor(haptic: GameHaptic): VibrationEffect {
+        val id = haptic.effectId
+        return if (id != null && hasBuiltInEffect(id)) {
+            VibrationEffect.createPredefined(id)
+        } else if (haptic.fallback.size == 2) {
+            // A single buzz, as before (DEFAULT_AMPLITUDE: many phones can't vary strength anyway)
+            VibrationEffect.createOneShot(haptic.fallback[1], VibrationEffect.DEFAULT_AMPLITUDE)
+        } else {
+            VibrationEffect.createWaveform(haptic.fallback, -1)
+        }
     }
+
+    // Only when the phone says yes outright (Android 11+). When it says "unknown", Android swaps in
+    // a generic buzz of its own, so those phones keep the game's own buzzes instead.
+    private fun hasBuiltInEffect(effectId: Int): Boolean =
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+            vibrator.areAllEffectsSupported(effectId) == Vibrator.VIBRATION_EFFECT_SUPPORT_YES
 
     fun setSoundEnabled(enabled: Boolean) {
         soundEnabled = enabled

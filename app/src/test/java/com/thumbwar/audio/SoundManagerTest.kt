@@ -20,25 +20,35 @@ class SoundManagerTest {
         (context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager).defaultVibrator
     private val sound = SoundManager(context)
 
+    // Robolectric's vibrator, like many budget phones, reports no built-in effects, so these
+    // check the fallback buzzes. The built-in effects need a phone that has them.
     @Test
-    fun `vibrate buzzes for the requested duration`() {
-        sound.vibrate(120)
+    fun `without built-in effects, short moments keep their short buzzes`() {
+        sound.vibrate(GameHaptic.PIN_TICK)
+        assertEquals(0, shadowOf(vibrator).effectId)
+        assertEquals(15L, shadowOf(vibrator).milliseconds)
+        sound.vibrate(GameHaptic.PIN_START)
+        assertEquals(100L, shadowOf(vibrator).milliseconds)
+    }
+
+    @Test
+    fun `winning is a longer buzz`() {
+        sound.vibrate(GameHaptic.ROUND_WON)
         assertTrue(shadowOf(vibrator).isVibrating)
-        assertEquals(120L, shadowOf(vibrator).milliseconds)
+        assertEquals(150L, shadowOf(vibrator).milliseconds)
     }
 
     @Test
     fun `vibrate does nothing when vibration is disabled`() {
         sound.setVibrationEnabled(false)
-        sound.vibrate(120)
-        sound.vibratePattern(longArrayOf(0, 100, 50, 100))
+        GameHaptic.entries.forEach { sound.vibrate(it) }
         assertFalse(shadowOf(vibrator).isVibrating)
+        assertEquals(0, shadowOf(vibrator).effectId)
     }
 
     @Test
-    fun `vibratePattern buzzes when enabled`() {
-        sound.vibratePattern(longArrayOf(0, 100, 50, 100))
-        assertTrue(shadowOf(vibrator).isVibrating)
+    fun `every haptic plays without throwing`() {
+        GameHaptic.entries.forEach { sound.vibrate(it) }
     }
 
     @Test
