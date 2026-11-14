@@ -55,6 +55,19 @@ class GameEngineTest {
     }
 
     @Test
+    fun `play time counts only from go, and each round starts it again`() {
+        engine.startGame()
+        while (engine.getState().phase == GamePhase.COUNTDOWN) engine.tick(GameConfig.TICK_RATE_MS)
+        assertEquals("Countdown isn't play time", 0L, engine.getState().playTimeMs)
+
+        repeat(10) { engine.tick(GameConfig.TICK_RATE_MS) }
+        assertEquals(10 * GameConfig.TICK_RATE_MS, engine.getState().playTimeMs)
+
+        engine.nextRound()
+        assertEquals(0L, engine.getState().playTimeMs)
+    }
+
+    @Test
     fun `player input ignored during countdown`() {
         engine.startGame()
         val initialPos = engine.getState().thumb1.position

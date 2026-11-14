@@ -27,7 +27,7 @@ fun GameScreen(
     isTwoPlayer: Boolean,
     aiDifficulty: AiDifficulty,
     winsNeeded: Int = 1,
-    onGameOver: (winner: Int, p1Score: Int, p2Score: Int) -> Unit,
+    onGameOver: (winner: Int, p1Score: Int, p2Score: Int, newRecordMs: Long?) -> Unit,
     onBack: () -> Unit,
     viewModel: GameViewModel = viewModel(factory = GameViewModel.Factory)
 ) {
@@ -85,7 +85,7 @@ fun GameScreen(
         if (gameState.phase == GamePhase.GAME_OVER) {
             if (gameState.isMatchOver) {
                 kotlinx.coroutines.delay(1500)
-                onGameOver(gameState.winner, gameState.p1RoundWins, gameState.p2RoundWins)
+                onGameOver(gameState.winner, gameState.p1RoundWins, gameState.p2RoundWins, viewModel.newRecordMs.value)
             } else {
                 kotlinx.coroutines.delay(com.thumbwar.engine.GameConfig.ROUND_TRANSITION_DELAY_MS)
                 viewModel.startNextRound()

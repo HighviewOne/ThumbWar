@@ -110,8 +110,14 @@ Sounds are Android system tones (no audio files). Both can be turned off in Sett
 **Settings:** sound effects, vibration, and a default difficulty (shown highlighted when you
 pick a difficulty).
 
-**Statistics** count matches **against the computer** only: wins, losses, current win streak and
-best win streak. A result is recorded when a match finishes. Quitting a match with Back counts
+**Statistics** count matches **against the computer** only: total wins and losses, current win
+streak and best win streak across all difficulties, plus each difficulty's own wins, losses and
+**fastest pin**. A result is recorded when a match finishes. Results from before per-difficulty
+stats existed only count in the totals.
+
+**Fastest pin** is the time from "go" (the countdown doesn't count) to a winning pin. Every round
+you win against the computer is timed, best-of-3 rounds included. A pin that beats that
+difficulty's fastest (or is its first) shows as **NEW RECORD!** on the game-over screen. Quitting a match with Back counts
 as a loss once play has begun (leaving during the opening countdown is free), so the dialog
 says so. 2-player matches aren't recorded. Stats can be reset in Settings.
 

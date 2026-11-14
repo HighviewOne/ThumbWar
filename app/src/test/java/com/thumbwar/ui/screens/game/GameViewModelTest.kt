@@ -12,6 +12,7 @@ import com.thumbwar.data.StatsRepository
 import com.thumbwar.engine.GameConfig
 import com.thumbwar.engine.GamePhase
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -25,6 +26,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -44,9 +46,15 @@ class GameViewModelTest {
     private val soundEnabled = MutableStateFlow(true)
     private val vibrationEnabled = MutableStateFlow(true)
     private val results = mutableListOf<Boolean>() // true = win recorded, false = loss
+    private val pins = mutableListOf<Pair<AiDifficulty, Long>>()
+    private var pinIsRecord = true // what the stats store answers for each pin
     private val stats = mockk<StatsRepository> {
-        coEvery { recordWin() } answers { results += true }
-        coEvery { recordLoss() } answers { results += false }
+        coEvery { recordWin(any()) } answers { results += true }
+        coEvery { recordLoss(any()) } answers { results += false }
+        coEvery { recordPin(any(), any()) } answers {
+            pins += firstArg<AiDifficulty>() to secondArg<Long>()
+            pinIsRecord
+        }
     }
 
     private lateinit var vm: GameViewModel
@@ -184,6 +192,48 @@ class GameViewModelTest {
         assertEquals(listOf(state().winner == 1), results)
     }
 
+    /** Chases the computer's thumb until the match ends; returns the game time it took after "go". */
+    private fun chaseUntilMatchOver(): Long {
+        val finger = press(state().thumb1.position.x, state().thumb1.position.y)
+        var elapsed = 0L
+        while (!state().isMatchOver && elapsed < 30_000) {
+            drag(finger, state().thumb2.position.x, state().thumb2.position.y)
+            advance(GameConfig.TICK_RATE_MS)
+            elapsed += GameConfig.TICK_RATE_MS
+        }
+        assertTrue("Match should finish", state().isMatchOver)
+        return elapsed
+    }
+
+    @Test
+    fun `a winning pin is timed from go, saved for its difficulty and announced as a record`() {
+        vm.initialize(isTwoPlayer = false, aiDifficulty = AiDifficulty.EASY)
+        advanceToPlaying()
+        val chased = chaseUntilMatchOver()
+        advance(100)
+
+        assertEquals("Player 1 should beat Easy here", 1, state().winner)
+        assertEquals(1, pins.size)
+        val (difficulty, pinMs) = pins.single()
+        assertEquals(AiDifficulty.EASY, difficulty)
+        // At least the 2.5 s hold; no more than the chase itself (the countdown isn't counted)
+        assertTrue("Pin time $pinMs", pinMs >= (GameConfig.PIN_DURATION_SECONDS * 1000).toLong() && pinMs <= chased + 300)
+        assertEquals(pinMs, vm.newRecordMs.value)
+        coVerify { stats.recordWin(AiDifficulty.EASY) }
+    }
+
+    @Test
+    fun `a pin that doesn't beat the record isn't announced`() {
+        pinIsRecord = false
+        vm.initialize(isTwoPlayer = false, aiDifficulty = AiDifficulty.EASY)
+        advanceToPlaying()
+        chaseUntilMatchOver()
+        advance(100)
+
+        assertEquals(1, pins.size)
+        assertNull(vm.newRecordMs.value)
+    }
+
     @Test
     fun `a pin ticks faster and faster until it wins`() {
         val tickTimes = mutableListOf<Long>()
@@ -231,6 +281,7 @@ class GameViewModelTest {
 
         assertTrue(state().isMatchOver)
         assertEquals(emptyList<Boolean>(), results)
+        assertEquals("2-player pins aren't timed", emptyList<Pair<AiDifficulty, Long>>(), pins)
         verify { soundManager.play(GameSound.VICTORY_FANFARE) }
     }
 

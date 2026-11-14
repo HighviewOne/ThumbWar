@@ -30,6 +30,9 @@ class GameEngine(private val winsNeeded: Int = 1) {
     private var pinnerPlayer: Int = 0
     private var winner: Int = 0
     private var elapsedTimeMs: Long = 0
+
+    // Time this round has been played since "go" (countdown excluded): what a pin is timed by
+    private var playTimeMs: Long = 0
     private var roundNumber: Int = 1
     private var p1RoundWins: Int = 0
     private var p2RoundWins: Int = 0
@@ -82,8 +85,14 @@ class GameEngine(private val winsNeeded: Int = 1) {
         when (phaseManager.phase) {
             GamePhase.READY -> { /* waiting for startGame() */ }
             GamePhase.COUNTDOWN -> phaseManager.updateCountdown(deltaMs)
-            GamePhase.PLAYING -> updatePlaying(deltaSeconds)
-            GamePhase.PIN_IN_PROGRESS -> updatePin(deltaSeconds)
+            GamePhase.PLAYING -> {
+                playTimeMs += deltaMs
+                updatePlaying(deltaSeconds)
+            }
+            GamePhase.PIN_IN_PROGRESS -> {
+                playTimeMs += deltaMs
+                updatePin(deltaSeconds)
+            }
             GamePhase.GAME_OVER -> { /* game ended */ }
         }
     }
@@ -151,6 +160,7 @@ class GameEngine(private val winsNeeded: Int = 1) {
         pinnerPlayer = 0
         winner = 0
         elapsedTimeMs = 0
+        playTimeMs = 0
         roundNumber = 1
         p1RoundWins = 0
         p2RoundWins = 0
@@ -165,6 +175,7 @@ class GameEngine(private val winsNeeded: Int = 1) {
         pinnerPlayer = 0
         winner = 0
         elapsedTimeMs = 0
+        playTimeMs = 0
         roundNumber++
         phaseManager.reset()
     }
@@ -179,6 +190,7 @@ class GameEngine(private val winsNeeded: Int = 1) {
         countdownText = phaseManager.countdownText,
         winner = winner,
         elapsedTimeMs = elapsedTimeMs,
+        playTimeMs = playTimeMs,
         roundNumber = roundNumber,
         p1RoundWins = p1RoundWins,
         p2RoundWins = p2RoundWins,

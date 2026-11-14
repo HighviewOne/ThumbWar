@@ -69,7 +69,7 @@ class GameScreenTest {
                             isTwoPlayer = isTwoPlayer,
                             aiDifficulty = AiDifficulty.EASY,
                             winsNeeded = winsNeeded,
-                            onGameOver = { winner, p1, p2 -> gameOver = Triple(winner, p1, p2) },
+                            onGameOver = { winner, p1, p2, _ -> gameOver = Triple(winner, p1, p2) },
                             onBack = { backPressed = true },
                             viewModel = vm
                         )

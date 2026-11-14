@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import com.thumbwar.ai.AiDifficulty
 import com.thumbwar.ui.screens.game.GameScreen
 import com.thumbwar.ui.screens.gameover.GameOverScreen
+import com.thumbwar.ui.screens.gameover.NewRecord
 import com.thumbwar.ui.screens.menu.MainMenuScreen
 import com.thumbwar.ui.screens.settings.SettingsScreen
 
@@ -14,11 +15,21 @@ object Routes {
     const val MAIN_MENU = "main_menu"
     const val GAME = "game/{mode}/{difficulty}/{winsNeeded}"
     const val SETTINGS = "settings"
-    const val GAME_OVER = "game_over/{mode}/{difficulty}/{winner}/{p1Score}/{p2Score}/{winsNeeded}"
+    const val GAME_OVER = "game_over/{mode}/{difficulty}/{winner}/{p1Score}/{p2Score}/{winsNeeded}?record={record}"
 
     fun game(mode: String, difficulty: String = "medium", winsNeeded: Int = 1) = "game/$mode/$difficulty/$winsNeeded"
-    fun gameOver(mode: String, difficulty: String, winner: Int, p1Score: Int, p2Score: Int, winsNeeded: Int = 1) =
-        "game_over/$mode/$difficulty/$winner/$p1Score/$p2Score/$winsNeeded"
+
+    /** [newRecordMs]: a fastest pin set this match, announced on the game-over screen. */
+    fun gameOver(
+        mode: String,
+        difficulty: String,
+        winner: Int,
+        p1Score: Int,
+        p2Score: Int,
+        winsNeeded: Int = 1,
+        newRecordMs: Long? = null
+    ) = "game_over/$mode/$difficulty/$winner/$p1Score/$p2Score/$winsNeeded" +
+        (newRecordMs?.let { "?record=$it" } ?: "")
 }
 
 @Composable
@@ -50,8 +61,10 @@ fun NavGraph(navController: NavHostController) {
                 isTwoPlayer = mode == "two_player",
                 aiDifficulty = difficulty,
                 winsNeeded = winsNeeded,
-                onGameOver = { winner, p1Score, p2Score ->
-                    navController.navigate(Routes.gameOver(mode, difficultyStr, winner, p1Score, p2Score, winsNeeded)) {
+                onGameOver = { winner, p1Score, p2Score, newRecordMs ->
+                    navController.navigate(
+                        Routes.gameOver(mode, difficultyStr, winner, p1Score, p2Score, winsNeeded, newRecordMs)
+                    ) {
                         popUpTo(Routes.MAIN_MENU)
                     }
                 },
@@ -70,12 +83,14 @@ fun NavGraph(navController: NavHostController) {
             val p1Score = backStackEntry.arguments?.getString("p1Score")?.toIntOrNull() ?: 0
             val p2Score = backStackEntry.arguments?.getString("p2Score")?.toIntOrNull() ?: 0
             val winsNeeded = backStackEntry.arguments?.getString("winsNeeded")?.toIntOrNull() ?: 1
+            val newRecordMs = backStackEntry.arguments?.getString("record")?.toLongOrNull()
 
             GameOverScreen(
                 winner = winner,
                 p1Score = p1Score,
                 p2Score = p2Score,
                 winsNeeded = winsNeeded,
+                newRecord = newRecordMs?.let { NewRecord(difficulty, it) },
                 onRematch = {
                     // Game screen was already popped on game over; start a fresh one with the same settings
                     navController.navigate(Routes.game(mode, difficulty, winsNeeded)) {
