@@ -7,6 +7,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -52,10 +53,34 @@ class SoundManagerTest {
     }
 
     @Test
-    fun `every game sound plays without throwing, enabled or not`() {
+    fun `each game sound plays its own file once it has loaded`() {
+        val pool = shadowOf(sound.soundPool)
+        GameSound.entries.forEach { pool.notifyResourceLoaded(it.resId, true) }
         GameSound.entries.forEach { sound.play(it) }
+        GameSound.entries.forEach { assertTrue("$it should play", pool.wasResourcePlayed(it.resId)) }
+        assertEquals("Every sound has its own file", GameSound.entries.size, GameSound.entries.map { it.resId }.toSet().size)
+    }
+
+    @Test
+    fun `a sound asked for before it has loaded is skipped, not queued`() {
+        val pool = shadowOf(sound.soundPool)
+        sound.play(GameSound.PIN_TICK)
+        pool.notifyResourceLoaded(GameSound.PIN_TICK.resId, true)
+        assertFalse(pool.wasResourcePlayed(GameSound.PIN_TICK.resId))
+    }
+
+    @Test
+    fun `nothing plays when sound is off`() {
+        val pool = shadowOf(sound.soundPool)
+        GameSound.entries.forEach { pool.notifyResourceLoaded(it.resId, true) }
         sound.setSoundEnabled(false)
         GameSound.entries.forEach { sound.play(it) }
+        GameSound.entries.forEach { assertFalse(pool.wasResourcePlayed(it.resId)) }
         sound.release()
+    }
+
+    @Test
+    fun `the app shares one sound manager`() {
+        assertSame(SoundManager.shared(context), SoundManager.shared(context))
     }
 }

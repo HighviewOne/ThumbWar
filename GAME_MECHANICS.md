@@ -95,15 +95,17 @@ trails behind overshoots. The computer starts every round fresh.
 
 | Event | Sound | Vibration |
 |---|---|---|
-| Countdown number | beep | 30 ms |
-| "I declare a thumb war!" | distinct beep | 50 ms |
-| Pin starts | thud | 100 ms |
-| Pin held | tick, speeding up from every 450 ms to every 120 ms as the ring fills | 15 ms per tick |
-| Pinned thumb breaks free | short prompt beep | two 30 ms buzzes |
-| Round won (match continues) | pin-complete cue | 150 ms |
-| Match won | fanfare | pattern |
+| Countdown number | short select click | tick (30 ms buzz) |
+| "I declare a thumb war!" | confirmation chime | click (50 ms buzz) |
+| Pin starts | thud | heavy click (100 ms buzz) |
+| Pin held | tick, speeding up from every 450 ms to every 120 ms as the ring fills | tick per tick (15 ms buzz) |
+| Pinned thumb breaks free | quick pop | double click (two 30 ms buzzes) |
+| Round won (match continues) | short sting | 150 ms buzz |
+| Match won | chiptune fanfare | pattern |
 
-Sounds are Android system tones (no audio files). Both can be turned off in Settings.
+Vibration uses the phone's own tick and click effects where it reports them (Android 11+);
+other phones get the buzz in brackets. Sounds are short OGG files in `res/raw` from Kenney's
+CC0 packs (Interface Sounds, RPG Sounds, Music Jingles). Both can be turned off in Settings.
 
 ## Settings and Statistics
 

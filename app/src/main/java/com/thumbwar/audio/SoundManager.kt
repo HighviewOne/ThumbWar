@@ -1,12 +1,13 @@
 package com.thumbwar.audio
 
 import android.content.Context
-import android.media.AudioManager
-import android.media.ToneGenerator
+import android.media.AudioAttributes
+import android.media.SoundPool
 import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import androidx.annotation.VisibleForTesting
 
 class SoundManager(private val context: Context) {
 
@@ -23,38 +24,34 @@ class SoundManager(private val context: Context) {
         }
     }
 
-    // Using ToneGenerator for simple sound effects without requiring audio assets.
-    // Some devices throw from its constructor (no audio resources); the game then plays silently.
-    @Suppress("TooGenericExceptionCaught", "SwallowedException")
-    private val toneGenerator: ToneGenerator? by lazy {
-        try {
-            ToneGenerator(AudioManager.STREAM_MUSIC, 80)
-        } catch (e: Exception) {
-            null
+    // Short game sounds, decoded once up front. A sound asked for before its file has loaded is
+    // skipped (they load in a few ms; the app shares one SoundManager, so only the very first
+    // countdown beat after launch could miss).
+    @VisibleForTesting
+    internal val soundPool: SoundPool = SoundPool.Builder()
+        .setMaxStreams(MAX_STREAMS)
+        .setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_GAME)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                .build()
+        )
+        .build()
+    private val soundIds = mutableMapOf<GameSound, Int>()
+    private val loadedIds = mutableSetOf<Int>()
+
+    init {
+        soundPool.setOnLoadCompleteListener { _, sampleId, status ->
+            if (status == 0) loadedIds += sampleId
         }
+        GameSound.entries.forEach { soundIds[it] = soundPool.load(context, it.resId, 1) }
     }
 
     fun play(sound: GameSound) {
         if (!soundEnabled) return
-
-        // Map game sounds to tone types for simple audio feedback
-        val toneType = when (sound) {
-            GameSound.COUNTDOWN_BEAT -> ToneGenerator.TONE_PROP_BEEP
-            GameSound.COUNTDOWN_DECLARE -> ToneGenerator.TONE_PROP_BEEP2
-            GameSound.COLLISION_THUD -> ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK
-            GameSound.PIN_TICK -> ToneGenerator.TONE_DTMF_9
-            GameSound.PIN_ESCAPE -> ToneGenerator.TONE_PROP_PROMPT
-            GameSound.PIN_COMPLETE -> ToneGenerator.TONE_PROP_ACK
-            GameSound.VICTORY_FANFARE -> ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD
-            GameSound.BUTTON_TAP -> ToneGenerator.TONE_PROP_BEEP
-        }
-
-        // Pin ticks come as fast as every 120 ms, so they must end before the next one starts
-        val durationMs = if (sound == GameSound.PIN_TICK) 50 else 150
-
-        try {
-            toneGenerator?.startTone(toneType, durationMs)
-        } catch (_: Exception) {}
+        val id = soundIds[sound] ?: return
+        if (id !in loadedIds) return
+        soundPool.play(id, 1f, 1f, 1, 0, 1f)
     }
 
     fun vibrate(haptic: GameHaptic) {
@@ -91,8 +88,26 @@ class SoundManager(private val context: Context) {
     }
 
     fun release() {
-        try {
-            toneGenerator?.release()
-        } catch (_: Exception) {}
+        soundPool.release()
+    }
+
+    companion object {
+        // Enough for a pin tick to overlap the thud or a jingle without cutting either off
+        private const val MAX_STREAMS = 4
+
+        @Volatile private var shared: SoundManager? = null
+
+        /** The app's one SoundManager, so sounds are decoded once rather than for every match. */
+        fun shared(context: Context): SoundManager =
+            shared ?: synchronized(this) {
+                shared ?: SoundManager(context.applicationContext).also { shared = it }
+            }
+
+        /** Robolectric gives every test a fresh app; forget the previous test's SoundManager. */
+        @VisibleForTesting
+        internal fun resetShared() {
+            shared?.release()
+            shared = null
+        }
     }
 }
