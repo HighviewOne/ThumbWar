@@ -85,8 +85,11 @@ Each difficulty re-decides after a reaction delay and sometimes makes a delibera
 | Mistake chance | 30% | 15% | 10% |
 | Style | Wanders when far away, creeps closer when near; rests for 0.5–1.5 s on 15% of decisions | Approaches; within 0.3 mixes approaching and dodging; attacks within 0.15 | Predicts where you'll be 0.1 s ahead; attacks within 0.12; feints (dodges) 30% of the time within 0.25 |
 
-On Medium and Hard, a pinned computer thumb tries to dodge away. The computer starts every
-round fresh.
+On Medium and Hard, a pinned computer thumb runs to break free. It picks the direction with the
+most room before a wall and keeps going that way, choosing again only when a wall gets close.
+Medium runs sideways (90° either way from the pinner). Hard also considers diagonals and
+straight away, and every 300–600 ms cuts sharply back to the other side, so a pinner who
+trails behind overshoots. The computer starts every round fresh.
 
 ## Sound and Vibration
 
@@ -96,6 +99,7 @@ round fresh.
 | "I declare a thumb war!" | distinct beep | 50 ms |
 | Pin starts | thud | 100 ms |
 | Pin held | tick, speeding up from every 450 ms to every 120 ms as the ring fills | 15 ms per tick |
+| Pinned thumb breaks free | short prompt beep | two 30 ms buzzes |
 | Round won (match continues) | pin-complete cue | 150 ms |
 | Match won | fanfare | pattern |
 

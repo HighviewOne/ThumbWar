@@ -1,5 +1,6 @@
 package com.thumbwar.ai
 
+import com.thumbwar.engine.ArenaScale
 import com.thumbwar.engine.GamePhase
 import com.thumbwar.engine.GameState
 import com.thumbwar.engine.ThumbState
@@ -16,12 +17,13 @@ class AiControllerTest {
     private fun makeGameState(
         thumb1Pos: Vector2 = Vector2(0.3f, 0.5f),
         thumb2Pos: Vector2 = Vector2(0.7f, 0.5f),
-        phase: GamePhase = GamePhase.PLAYING
+        phase: GamePhase = GamePhase.PLAYING,
+        aiPinned: Boolean = false
     ): GameState {
         return GameState(
             phase = phase,
-            thumb1 = ThumbState(position = thumb1Pos),
-            thumb2 = ThumbState(position = thumb2Pos)
+            thumb1 = ThumbState(position = thumb1Pos, isPinning = aiPinned),
+            thumb2 = ThumbState(position = thumb2Pos, isPinned = aiPinned)
         )
     }
 
@@ -119,6 +121,49 @@ class AiControllerTest {
 
         ai.reset()
         assertNull("No target right after reset, before the reaction delay", ai.update(state, 10))
+    }
+
+    /** Escape targets sit 0.3 away; a deliberate mistake lands within ~0.14, so skip those. */
+    private fun escapeTargets(ai: AiController, state: GameState, decisions: Int, deltaMs: Long): List<Vector2> =
+        List(decisions) { ai.update(state, deltaMs) }
+            .filterNotNull()
+            .filter { it.distanceTo(state.thumb2.position) > 0.2f }
+
+    @Test
+    fun `pinned AI runs toward open space, not into the wall`() {
+        // Pinned against the bottom wall with the pinner to its left: sideways means up or down
+        val state = makeGameState(thumb1Pos = Vector2(0.45f, 0.9f), thumb2Pos = Vector2(0.5f, 0.9f), aiPinned = true)
+        for (difficulty in listOf(AiDifficulty.MEDIUM, AiDifficulty.HARD)) {
+            val targets = escapeTargets(AiController(difficulty, Random(SEED)), state, 30, 200)
+            assertTrue("$difficulty should try to escape", targets.isNotEmpty())
+            targets.forEach { assertTrue("$difficulty ran toward the wall: $it", it.y < 0.9f) }
+        }
+    }
+
+    @Test
+    fun `pinned medium AI keeps running one way instead of zig-zagging`() {
+        val state = makeGameState(thumb1Pos = Vector2(0.45f, 0.5f), thumb2Pos = Vector2(0.5f, 0.5f), aiPinned = true)
+        val targets = escapeTargets(AiController(AiDifficulty.MEDIUM, Random(SEED)), state, 30, 200)
+        assertTrue(targets.size > 10)
+        assertEquals("Same escape target every decision", 1, targets.distinct().size)
+    }
+
+    @Test
+    fun `pinned hard AI cuts back the other way now and then`() {
+        val state = makeGameState(thumb1Pos = Vector2(0.45f, 0.5f), thumb2Pos = Vector2(0.5f, 0.5f), aiPinned = true)
+        // 3 s of decisions; cuts come every 300-600 ms
+        val sides = escapeTargets(AiController(AiDifficulty.HARD, Random(SEED)), state, 37, 80)
+            .map { it.y < 0.5f }
+        val cuts = sides.zipWithNext().count { (a, b) -> a != b }
+        assertTrue("Expected a few cuts, got $cuts in $sides", cuts in 3..10)
+    }
+
+    @Test
+    fun `room is measured to the padded arena edge`() {
+        val wide = ArenaScale(2f, 1f)
+        assertEquals(0.45f, roomAlong(Vector2(0.5f, 0.5f), Vector2(1f, 0f), ArenaScale.SQUARE), 0.001f)
+        assertEquals(1.4f, roomAlong(Vector2(0.5f, 0.5f), Vector2(1f, 0f), wide), 0.001f)
+        assertEquals(0.45f, roomAlong(Vector2(0.5f, 0.5f), Vector2(0f, -1f), wide), 0.001f)
     }
 
     private companion object {
