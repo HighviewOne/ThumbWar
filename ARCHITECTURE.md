@@ -47,7 +47,7 @@ Finger touches the arena
   → InputManager classifies it (down / held / lifted) and assigns a player
   → InputEvent → GameEngine.setPlayerNTarget / releasePlayerN
 
-Game loop (GameViewModel, a coroutine in viewModelScope, every ~16 ms)
+Game loop (GameViewModel, a coroutine in viewModelScope, once per display refresh)
   → AiController picks player 2's target (vs computer only)
   → GameEngine.tick(delta): move thumbs, detect/advance/cancel pins, end rounds
   → sounds and vibration for what changed; stats recorded when a match ends
@@ -57,7 +57,8 @@ GameScreen collects the StateFlow → Compose redraws the arena and overlays
 ```
 
 The engine never reads the clock or touches Android. The ViewModel owns time (an injectable
-`clock`), input and side effects, which is what makes the engine easy to test.
+`MonotonicFrameClock`: in the app, the display's vsync via `AndroidUiDispatcher`, so the loop
+steps once per refresh at 60, 90 or 120 Hz; frames longer than 50 ms are capped), input and side effects, which is what makes the engine easy to test.
 
 ## Game Phases
 

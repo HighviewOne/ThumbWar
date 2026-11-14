@@ -32,8 +32,9 @@ object GameConfig {
     const val PLAYER2_START_X = 0.7f
     const val PLAYER2_START_Y = 0.5f
 
-    // Game tick rate
-    const val TICK_RATE_MS = 16L // ~60fps
+    // A 60 Hz frame, for tests that step the game by hand. The real game steps once per display
+    // refresh, whatever the screen's rate.
+    const val TICK_RATE_MS = 16L
 
     // Round transitions
     const val ROUND_TRANSITION_DELAY_MS = 2000L

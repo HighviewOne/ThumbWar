@@ -50,7 +50,7 @@ class GameScreenTest {
         soundEnabled = flowOf(true),
         vibrationEnabled = flowOf(true),
         statsRepository = mockk<StatsRepository>(relaxed = true),
-        clock = { now },
+        frameClock = FakeFrameClock { now },
         aiRandom = Random(42) // same computer moves every run
     )
     private var gameOver: Triple<Int, Int, Int>? = null
@@ -80,7 +80,7 @@ class GameScreenTest {
     }
 
     /**
-     * One frame at a time: move game time, let the main looper run the game loop's delay(), and
+     * One frame at a time: move game time, let the main looper run the fake frame clock's delay(), and
      * advance Compose's clock for the screen's effects (round/match-end delays, animations).
      */
     private fun advance(ms: Long) {

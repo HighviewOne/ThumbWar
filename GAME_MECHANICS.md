@@ -16,7 +16,7 @@ drawn with the same scale, so what you see is what collides.
 | Thumb top speed | 0.8 shorter-sides per second |
 | Arena bounds | thumbs stay within 5%–95% of each axis |
 | Start positions | P1 at (0.3, 0.5), P2 at (0.7, 0.5) |
-| Game tick | ~16 ms (~60 per second) |
+| Game tick | once per screen refresh (60, 90 or 120 per second); at most 50 ms of game per tick |
 
 ## Movement
 
