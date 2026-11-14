@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.thumbwar.ai.AiController
 import com.thumbwar.ai.AiDifficulty
+import com.thumbwar.audio.GameHaptic
 import com.thumbwar.audio.GameSound
 import com.thumbwar.audio.SoundManager
 import com.thumbwar.data.PreferencesRepository
@@ -138,7 +139,9 @@ class GameViewModel(
         if (state.phase == GamePhase.COUNTDOWN) {
             countdownSoundFor(lastCountdownText, state.countdownText)?.let { sound ->
                 soundManager.play(sound)
-                soundManager.vibrate(if (sound == GameSound.COUNTDOWN_DECLARE) 50 else 30)
+                soundManager.vibrate(
+                    if (sound == GameSound.COUNTDOWN_DECLARE) GameHaptic.COUNTDOWN_DECLARE else GameHaptic.COUNTDOWN_BEAT
+                )
             }
             lastCountdownText = state.countdownText
         }
@@ -149,7 +152,7 @@ class GameViewModel(
                 nextPinTickProgress = pinTickStep(0f) // the thud marks the start; first tick one step later
             } else if (state.pinProgress >= nextPinTickProgress && state.pinProgress < 1f) {
                 soundManager.play(GameSound.PIN_TICK)
-                soundManager.vibrate(15)
+                soundManager.vibrate(GameHaptic.PIN_TICK)
                 nextPinTickProgress = state.pinProgress + pinTickStep(state.pinProgress)
             }
         }
@@ -164,21 +167,21 @@ class GameViewModel(
         when (state.phase) {
             GamePhase.PIN_IN_PROGRESS -> {
                 soundManager.play(GameSound.COLLISION_THUD)
-                soundManager.vibrate(100)
+                soundManager.vibrate(GameHaptic.PIN_START)
             }
-            // A pinned thumb broke free: a quick double buzz, unlike the single thud of a pin
+            // A pinned thumb broke free: a double click, unlike the single heavy click of a pin
             GamePhase.PLAYING -> if (lastPhase == GamePhase.PIN_IN_PROGRESS) {
                 soundManager.play(GameSound.PIN_ESCAPE)
-                soundManager.vibratePattern(PIN_ESCAPE_VIBRATION)
+                soundManager.vibrate(GameHaptic.PIN_ESCAPE)
             }
             GamePhase.GAME_OVER -> {
                 // Fanfare only for winning the match; a round win in best-of-3 gets the pin cue
                 if (state.isMatchOver) {
                     soundManager.play(GameSound.VICTORY_FANFARE)
-                    soundManager.vibratePattern(longArrayOf(0, 100, 50, 100, 50, 200))
+                    soundManager.vibrate(GameHaptic.MATCH_WON)
                 } else {
                     soundManager.play(GameSound.PIN_COMPLETE)
-                    soundManager.vibrate(150)
+                    soundManager.vibrate(GameHaptic.ROUND_WON)
                 }
                 recordMatchResult(state)
             }
@@ -333,9 +336,6 @@ private fun pinTickStep(progress: Float): Float =
 
 private const val PIN_TICK_FIRST_INTERVAL_MS = 450f
 private const val PIN_TICK_LAST_INTERVAL_MS = 120f
-
-/** Breaking free of a pin: two short buzzes. */
-internal val PIN_ESCAPE_VIBRATION = longArrayOf(0, 30, 40, 30)
 
 /**
  * Stats track single-player matches against the computer: true if the human (player 1) won
