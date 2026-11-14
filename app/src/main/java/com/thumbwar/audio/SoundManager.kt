@@ -43,6 +43,7 @@ class SoundManager(private val context: Context) {
             GameSound.COUNTDOWN_DECLARE -> ToneGenerator.TONE_PROP_BEEP2
             GameSound.COLLISION_THUD -> ToneGenerator.TONE_CDMA_EMERGENCY_RINGBACK
             GameSound.PIN_TICK -> ToneGenerator.TONE_DTMF_9
+            GameSound.PIN_ESCAPE -> ToneGenerator.TONE_PROP_PROMPT
             GameSound.PIN_COMPLETE -> ToneGenerator.TONE_PROP_ACK
             GameSound.VICTORY_FANFARE -> ToneGenerator.TONE_CDMA_ALERT_CALL_GUARD
             GameSound.BUTTON_TAP -> ToneGenerator.TONE_PROP_BEEP

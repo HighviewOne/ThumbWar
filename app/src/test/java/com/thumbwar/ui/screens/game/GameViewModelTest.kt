@@ -201,6 +201,27 @@ class GameViewModelTest {
     }
 
     @Test
+    fun `breaking free of a pin plays the escape cue`() {
+        vm.initialize(isTwoPlayer = true, aiDifficulty = AiDifficulty.MEDIUM)
+        advanceToPlaying()
+        val p1 = press(GameConfig.PLAYER1_START_X, GameConfig.PLAYER1_START_Y)
+        drag(p1, GameConfig.PLAYER2_START_X, GameConfig.PLAYER2_START_Y)
+        advance(1000)
+        assertEquals(GamePhase.PIN_IN_PROGRESS, state().phase)
+        verify(exactly = 0) { soundManager.play(GameSound.PIN_ESCAPE) }
+
+        // The pinner lets go and the pinned thumb runs for the corner
+        vm.processPointer(p1, 0f, 0f, pressed = false, previousPressed = true, canvasWidth = size, canvasHeight = size)
+        val p2 = press(0.9f, 0.5f)
+        drag(p2, 0.9f, 0.1f)
+        advance(1000)
+
+        assertEquals(GamePhase.PLAYING, state().phase)
+        verify(exactly = 1) { soundManager.play(GameSound.PIN_ESCAPE) }
+        verify(exactly = 1) { soundManager.vibratePattern(PIN_ESCAPE_VIBRATION) }
+    }
+
+    @Test
     fun `two player - finishing a match records nothing`() {
         vm.initialize(isTwoPlayer = true, aiDifficulty = AiDifficulty.MEDIUM)
         advanceToPlaying()

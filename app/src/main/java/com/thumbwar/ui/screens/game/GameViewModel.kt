@@ -153,27 +153,35 @@ class GameViewModel(
             }
         }
 
-        // Phase transitions
         if (state.phase != lastPhase) {
-            when (state.phase) {
-                GamePhase.PIN_IN_PROGRESS -> {
-                    soundManager.play(GameSound.COLLISION_THUD)
-                    soundManager.vibrate(100)
-                }
-                GamePhase.GAME_OVER -> {
-                    // Fanfare only for winning the match; a round win in best-of-3 gets the pin cue
-                    if (state.isMatchOver) {
-                        soundManager.play(GameSound.VICTORY_FANFARE)
-                        soundManager.vibratePattern(longArrayOf(0, 100, 50, 100, 50, 200))
-                    } else {
-                        soundManager.play(GameSound.PIN_COMPLETE)
-                        soundManager.vibrate(150)
-                    }
-                    recordMatchResult(state)
-                }
-                else -> {}
-            }
+            onPhaseChange(state)
             lastPhase = state.phase
+        }
+    }
+
+    private fun onPhaseChange(state: GameState) {
+        when (state.phase) {
+            GamePhase.PIN_IN_PROGRESS -> {
+                soundManager.play(GameSound.COLLISION_THUD)
+                soundManager.vibrate(100)
+            }
+            // A pinned thumb broke free: a quick double buzz, unlike the single thud of a pin
+            GamePhase.PLAYING -> if (lastPhase == GamePhase.PIN_IN_PROGRESS) {
+                soundManager.play(GameSound.PIN_ESCAPE)
+                soundManager.vibratePattern(PIN_ESCAPE_VIBRATION)
+            }
+            GamePhase.GAME_OVER -> {
+                // Fanfare only for winning the match; a round win in best-of-3 gets the pin cue
+                if (state.isMatchOver) {
+                    soundManager.play(GameSound.VICTORY_FANFARE)
+                    soundManager.vibratePattern(longArrayOf(0, 100, 50, 100, 50, 200))
+                } else {
+                    soundManager.play(GameSound.PIN_COMPLETE)
+                    soundManager.vibrate(150)
+                }
+                recordMatchResult(state)
+            }
+            else -> {}
         }
     }
 
@@ -314,6 +322,9 @@ private fun pinTickStep(progress: Float): Float =
 
 private const val PIN_TICK_FIRST_INTERVAL_MS = 450f
 private const val PIN_TICK_LAST_INTERVAL_MS = 120f
+
+/** Breaking free of a pin: two short buzzes. */
+internal val PIN_ESCAPE_VIBRATION = longArrayOf(0, 30, 40, 30)
 
 /**
  * Stats track single-player matches against the computer: true if the human (player 1) won
