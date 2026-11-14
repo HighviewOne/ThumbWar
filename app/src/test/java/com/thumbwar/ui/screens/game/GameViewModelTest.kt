@@ -29,7 +29,7 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * Runs the real game loop on a virtual clock: the loop's delay() and its clock both follow the
+ * Runs the real game loop on a virtual clock: the fake frame clock's delay() and frame time both follow the
  * test scheduler, so advancing N ms of virtual time plays N ms of game.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -63,7 +63,7 @@ class GameViewModelTest {
                     soundEnabled = soundEnabled,
                     vibrationEnabled = vibrationEnabled,
                     statsRepository = stats,
-                    clock = { dispatcher.scheduler.currentTime },
+                    frameClock = FakeFrameClock { dispatcher.scheduler.currentTime },
                     aiRandom = Random(42)
                 )
             }

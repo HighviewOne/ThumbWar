@@ -112,7 +112,7 @@ releases. If a release build of Thumb War is on the device, uninstall it first.
   `GameScreenTest`, `CanvasRenderingTest`), so prefer them over device tests.
 - **Instrumentation tests** go in `app/src/androidTest/java/` for things that need real hardware.
 - **Keep tests deterministic.** Pass a seeded `Random` to `AiController`/`GameViewModel`, and a
-  fake clock to `GameViewModel` (`GameViewModelTest` runs the game loop in virtual time;
+  `FakeFrameClock` to `GameViewModel` (`GameViewModelTest` runs the game loop in virtual time;
   `GameScreenTest` shows how to drive the loop and Compose's clock together under Robolectric).
 - Name tests by behavior, e.g. `` `pinned player escapes by dragging away` ``.
 - Mock external dependencies with MockK; repositories take a `DataStore`, so tests can use a

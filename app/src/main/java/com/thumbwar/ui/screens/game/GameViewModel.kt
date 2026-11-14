@@ -1,5 +1,8 @@
 package com.thumbwar.ui.screens.game
 
+import androidx.annotation.VisibleForTesting
+import androidx.compose.runtime.MonotonicFrameClock
+import androidx.compose.ui.platform.AndroidUiDispatcher
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
@@ -19,7 +22,6 @@ import com.thumbwar.input.InputEvent
 import com.thumbwar.input.InputManager
 import kotlin.random.Random
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,7 +34,9 @@ class GameViewModel(
     soundEnabled: Flow<Boolean>,
     vibrationEnabled: Flow<Boolean>,
     private val statsRepository: StatsRepository,
-    private val clock: () -> Long = System::currentTimeMillis,
+    // Paces the game loop: one step per display refresh (60, 90 or 120 Hz), timed by the frame's
+    // vsync timestamp. Tests pass a clock on virtual time.
+    private val frameClock: MonotonicFrameClock = newFrameClock(),
     private val aiRandom: Random = Random.Default
 ) : ViewModel() {
 
@@ -103,11 +107,10 @@ class GameViewModel(
         gameLoopJob?.cancel()
         if (isPaused) return
         gameLoopJob = viewModelScope.launch {
-            var lastTime = clock()
+            val frameTimer = FrameTimer()
             while (isActive) {
-                val now = clock()
-                val delta = (now - lastTime).coerceIn(1, 50)
-                lastTime = now
+                val delta = frameTimer.stepMs(frameClock.withFrameNanos { it })
+                if (delta == 0L) continue
 
                 // AI update
                 aiController?.let { ai ->
@@ -126,8 +129,6 @@ class GameViewModel(
                 val newState = engine.getState()
                 handleSoundAndHaptics(newState)
                 _gameState.value = newState
-
-                delay(GameConfig.TICK_RATE_MS)
             }
         }
     }
@@ -275,6 +276,16 @@ class GameViewModel(
     }
 
     companion object {
+        /**
+         * Makes the clock each new game runs on: the display's vsync. Robolectric tests swap in a
+         * fake (see TestThumbWarApplication), because there the display clock hands out frames
+         * without time passing and the game loop never lets the test go idle.
+         */
+        @VisibleForTesting
+        internal var newFrameClock: () -> MonotonicFrameClock = {
+            checkNotNull(AndroidUiDispatcher.Main[MonotonicFrameClock])
+        }
+
         val Factory = viewModelFactory {
             initializer {
                 val app = checkNotNull(this[APPLICATION_KEY])
@@ -344,4 +355,39 @@ internal fun forfeitCountsAsLoss(state: GameState, isTwoPlayer: Boolean): Boolea
     isTwoPlayer || state.isMatchOver -> false
     state.roundNumber == 1 && (state.phase == GamePhase.READY || state.phase == GamePhase.COUNTDOWN) -> false
     else -> true
+}
+
+/**
+ * Turns display frame times into game steps in whole milliseconds. The leftover fraction of a
+ * millisecond carries into the next frame, so at 90 Hz (11.1 ms frames) game time doesn't fall
+ * behind real time. A stall (GC, app switch) is capped at [MAX_FRAME_MS], so the thumbs don't
+ * jump across the arena.
+ */
+internal class FrameTimer {
+    private var lastNanos = -1L
+
+    /** Milliseconds of game to play for a frame at [frameNanos]; 0 means skip this frame. */
+    fun stepMs(frameNanos: Long): Long {
+        if (lastNanos < 0) {
+            lastNanos = frameNanos
+            return 0
+        }
+        val ms = (frameNanos - lastNanos) / NANOS_PER_MS
+        return when {
+            ms < 1 -> 0
+            ms > MAX_FRAME_MS -> {
+                lastNanos = frameNanos
+                MAX_FRAME_MS
+            }
+            else -> {
+                lastNanos += ms * NANOS_PER_MS
+                ms
+            }
+        }
+    }
+
+    companion object {
+        const val MAX_FRAME_MS = 50L
+        private const val NANOS_PER_MS = 1_000_000L
+    }
 }

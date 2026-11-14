@@ -6,7 +6,6 @@ import com.thumbwar.util.Vector2
  * Core game engine managing the main game loop and state.
  *
  * The GameEngine is responsible for:
- * - Running the game loop at ~60 FPS
  * - Updating thumb positions based on input and AI
  * - Detecting collisions and pin conditions
  * - Managing game phase transitions

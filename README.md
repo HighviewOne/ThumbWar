@@ -86,7 +86,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the full development setup.
 - **State** — Coroutines + StateFlow
 - **Persistence** — DataStore Preferences
 - **Rendering** — Canvas API (procedural, no bitmap assets)
-- **Game Loop** — Coroutine-based, ~60fps
+- **Game Loop** — Coroutine-based, in step with the display's refresh rate
 - **Testing** — JUnit 4, MockK, Robolectric, Compose Testing
 - **Build** — Gradle 9.8 with Kotlin DSL, AGP 9 (built-in Kotlin 2.4)
 
